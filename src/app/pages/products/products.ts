@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -5,9 +6,8 @@ import { FormsModule } from '@angular/forms';
 interface Product {
   id: number;
   name: string;
-  category: string;
   quantity: number;
-  unit: string;
+  minimumStock: number;
   location: string;
   image: string;
 }
@@ -20,117 +20,184 @@ interface Product {
   styleUrl: './products.css'
 })
 export class Products {
+  products: Product[] = [];
+
   searchText = '';
-  selectedUnit = 'All units';
   showForm = false;
   editingId: number | null = null;
+  imagePreview = '';
+  imageError = '';
 
-  products: Product[] = [
-    {
-      id: 1,
-      name: 'Rice',
-      category: 'Food',
-      quantity: 200,
-      unit: 'KG',
-      location: 'Rack A1',
-      image: 'https://placehold.co/100x100/f3ead8/66553b?text=Rice'
-    },
-    {
-      id: 2,
-      name: 'Blanket',
-      category: 'Clothing',
-      quantity: 50,
-      unit: 'PCS',
-      location: 'Rack B1',
-      image: 'https://placehold.co/100x100/ece3d8/66553b?text=Blanket'
-    },
-    {
-      id: 3,
-      name: 'Cooking Oil',
-      category: 'Food',
-      quantity: 75,
-      unit: 'LTR',
-      location: 'Rack A2',
-      image: 'https://placehold.co/100x100/e5edcf/53613b?text=Oil'
-    }
-  ];
-
-  form: Product = this.emptyProduct();
-
-  get filteredProducts(): Product[] {
-    return this.products.filter(product => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        product.category.toLowerCase().includes(this.searchText.toLowerCase());
-
-      const matchesUnit =
-        this.selectedUnit === 'All units' ||
-        product.unit === this.selectedUnit;
-
-      return matchesSearch && matchesUnit;
-    });
-  }
-
-  get units(): string[] {
-    return ['All units', ...new Set(this.products.map(p => p.unit))];
-  }
-
-  get lowStockCount(): number {
-    return this.products.filter(p => p.quantity <= 10).length;
-  }
+  productForm: Product = this.emptyProduct();
 
   emptyProduct(): Product {
     return {
       id: 0,
       name: '',
-      category: 'Food',
       quantity: 0,
-      unit: 'KG',
+      minimumStock: 10,
       location: '',
-      image: 'https://placehold.co/100x100/f3ead8/66553b?text=Product'
+      image: ''
     };
   }
 
+  get filteredProducts(): Product[] {
+    const search = this.searchText.trim().toLowerCase();
+
+    return this.products.filter(product =>
+      product.name.toLowerCase().includes(search) ||
+      product.location.toLowerCase().includes(search)
+    );
+  }
+
+  get lowStockCount(): number {
+    return this.products.filter(
+      product => product.quantity <= product.minimumStock
+    ).length;
+  }
+
+  get totalPieces(): number {
+    return this.products.reduce(
+      (total, product) => total + product.quantity, 0
+    );
+  }
+  
+addReceivedStock(product: Product): void {
+  const input = window.prompt(
+    `Current stock: ${product.quantity} PCS\nEnter additional quantity received:`
+  );
+
+  if (input === null || input.trim() === '') {
+    return;
+  }
+
+  const quantity = Number(input);
+
+  if (!Number.isSafeInteger(quantity) || quantity <= 0) {
+    window.alert('Enter a valid positive whole number of pieces.');
+    return;
+  }
+
+  product.quantity += quantity;
+
+  window.alert(
+    `${product.name} updated successfully. New stock: ${product.quantity} PCS`
+  );
+}
+
+
   openAddForm(): void {
     this.editingId = null;
-    this.form = this.emptyProduct();
+    this.productForm = this.emptyProduct();
+    this.imagePreview = '';
+    this.imageError = '';
     this.showForm = true;
   }
 
   editProduct(product: Product): void {
     this.editingId = product.id;
-    this.form = { ...product };
+    this.productForm = { ...product };
+    this.imagePreview = product.image;
+    this.imageError = '';
     this.showForm = true;
   }
 
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    this.imageError = '';
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.imageError = 'Please select a valid image.';
+      input.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.imageError = 'Image must be 5 MB or smaller.';
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.imagePreview = reader.result as string;
+      this.productForm.image = this.imagePreview;
+    };
+
+    reader.onerror = () => {
+      this.imageError = 'Unable to read image. Please try again.';
+    };
+
+    reader.readAsDataURL(file);
+  }
+
   saveProduct(): void {
-    if (!this.form.name.trim() || this.form.quantity < 0) {
+    this.productForm.name = this.productForm.name.trim();
+    this.productForm.location = this.productForm.location.trim();
+
+    if (!this.productForm.name) return;
+
+    if (!this.productForm.image || this.imageError) {
+      this.imageError = 'Please upload a clothing image.';
+      return;
+    }
+
+    if (
+      !Number.isFinite(this.productForm.quantity) ||
+      this.productForm.quantity < 0 ||
+      !Number.isFinite(this.productForm.minimumStock) ||
+      this.productForm.minimumStock < 0
+    ) {
       return;
     }
 
     if (this.editingId !== null) {
-      this.products = this.products.map(product =>
-        product.id === this.editingId ? { ...this.form } : product
+      const index = this.products.findIndex(
+        p => p.id === this.editingId
       );
+
+      if (index !== -1) {
+        this.products[index] = {
+          ...this.productForm,
+          id: this.editingId
+        };
+      }
     } else {
-      const newProduct: Product = {
-        ...this.form,
-        id: Math.max(0, ...this.products.map(p => p.id)) + 1
-      };
-      this.products = [...this.products, newProduct];
+      this.products.push({
+        ...this.productForm,
+        id: Date.now()
+      });
     }
 
-    this.showForm = false;
-    this.form = this.emptyProduct();
+    this.closeForm();
   }
 
-  deleteProduct(product: Product): void {
-    if (confirm(`Delete ${product.name}?`)) {
-      this.products = this.products.filter(p => p.id !== product.id);
+  deleteProduct(id: number): void {
+    if (window.confirm('Delete this clothing product?')) {
+      this.products = this.products.filter(p => p.id !== id);
     }
+  }
+
+  stockStatus(product: Product): string {
+    return product.quantity <= product.minimumStock
+      ? 'Low Stock'
+      : 'Available';
   }
 
   closeForm(): void {
     this.showForm = false;
+    this.editingId = null;
+    this.imagePreview = '';
+    this.imageError = '';
+    this.productForm = this.emptyProduct();
+  }
+
+  trackByProductId(index: number, product: Product): number {
+    return product.id;
   }
 }
