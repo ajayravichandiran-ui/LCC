@@ -1,0 +1,137 @@
+<div class="signup-container">
+  <div class="signup-card">
+
+    <div class="welcome">CREATE ACCOUNT</div>
+
+    <h1>Sign Up</h1>
+
+    <p class="subtitle">
+      Create your account to get started
+    </p>
+
+    <form (ngSubmit)="signup()" #signupForm="ngForm">
+
+      <!-- Full Name -->
+      <div class="input-box">
+        <label>Full Name</label>
+        <input
+          type="text"
+          name="fullname"
+          [(ngModel)]="fullName"
+          placeholder="Enter your full name"
+          required>
+      </div>
+
+      <!-- Username -->
+      <div class="input-box">
+        <label>Username</label>
+        <input
+          type="text"
+          name="username"
+          [(ngModel)]="username"
+          placeholder="Enter username"
+          required>
+      </div>
+
+      <!-- Email -->
+      <div class="input-box">
+        <label>Email</label>
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="Enter email"
+          required>
+      </div>
+
+      <!-- Mobile -->
+      <div class="input-box">
+        <label>Mobile Number</label>
+        <input
+          type="tel"
+          name="mobile"
+          [(ngModel)]="mobile"
+          placeholder="Enter mobile number"
+          required>
+      </div>
+
+      <!-- Password -->
+      <div class="input-box">
+        <label>Create Password</label>
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Enter password"
+          required>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="input-box">
+        <label>Confirm Password</label>
+        <input
+          type="password"
+          name="confirmPassword"
+          [(ngModel)]="confirmPassword"
+          placeholder="Confirm password"
+          required>
+      </div>
+
+      <small class="password-hint">
+        Use 8+ characters with uppercase, lowercase,
+        number and special character.
+      </small>
+
+      <!-- Terms -->
+      <div class="terms">
+        <input
+          type="checkbox"
+          name="termsAccepted"
+          [(ngModel)]="termsAccepted">
+
+        <span>I agree to the Terms &amp; Conditions</span>
+      </div>
+
+      <!-- Error -->
+      <div class="error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Success -->
+      <div class="success" *ngIf="message">
+        {{ message }}
+      </div>
+
+      <!-- Signup Button -->
+      <button
+        class="signup-btn"
+        type="submit"
+        [disabled]="isLoading">
+
+        {{ isLoading ? 'Creating Account...' : 'Create Account' }}
+        <span *ngIf="!isLoading">→</span>
+      </button>
+
+    </form>
+
+    <div class="login-link">
+      Already have an account?
+      <button type="button" (click)="goToLogin()">
+        Log in
+      </button>
+    </div>
+
+    <div class="divider">
+      <span></span>
+      OR
+      <span></span>
+    </div>
+
+    <div class="footer-text">
+      Secure Registration &nbsp; • &nbsp;
+      Easy Access &nbsp; • &nbsp;
+      Better Together
+    </div>
+
+  </div>
+</div>

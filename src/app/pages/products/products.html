@@ -1,257 +1,424 @@
-
 <div class="products-page">
 
+  <!-- Page Header -->
   <header class="products-header">
-    <div>
-      <span class="eyebrow">LCC WAREHOUSE</span>
-      <h1>Clothing Products</h1>
-      <p>Manage clothing stock received and ready for distribution.</p>
+    <div class="header-text">
+      <h1>Products</h1>
+      <p>Manage warehouse products and available stock.</p>
     </div>
 
-    <button class="add-product-btn" (click)="openAddForm()">
-      + Add Clothing
+    <button
+      type="button"
+      class="add-product-btn"
+      (click)="openAddForm()"
+    >
+      + Add Product
     </button>
   </header>
 
+  <!-- Stock Register -->
   <section class="stock-register">
 
-    <div class="register-heading">
-      <div>
-        <h2>Clothing Stock Register</h2>
-        <p>All quantities are measured in pieces (PCS).</p>
+    <!-- Stock Summary -->
+    <div class="stock-summary">
+
+      <div class="summary-card">
+        <span class="summary-label">Total Products</span>
+        <h2>{{ products.length }}</h2>
       </div>
 
-      <div class="summary">
-        <div class="summary-item">
-          <span>Total Products</span>
-          <strong>{{ products.length }}</strong>
-        </div>
-
-        <div class="summary-item">
-          <span>Total Pieces</span>
-          <strong>{{ totalPieces }} PCS</strong>
-        </div>
-
-        <div class="summary-item">
-          <span>Low Stock</span>
-          <strong class="low-number">{{ lowStockCount }}</strong>
-        </div>
+      <div class="summary-card">
+        <span class="summary-label">Total Pieces</span>
+        <h2>{{ totalPieces }}</h2>
       </div>
+
     </div>
 
-    <div class="filters">
+    <!-- Search -->
+    <div class="products-toolbar">
       <input
         type="search"
+        class="product-search"
+        placeholder="Search by product, sponsor, or location..."
         [(ngModel)]="searchText"
-        placeholder="Search clothing..."
-        aria-label="Search clothing products"
+        aria-label="Search products"
       />
     </div>
 
-    <div class="products-grid" *ngIf="filteredProducts.length; else empty">
+    <!-- Product Cards -->
+    <div
+      class="products-grid"
+      *ngIf="filteredProducts.length > 0; else emptyProducts"
+    >
+
       <article
         class="product-card"
-        *ngFor="let product of filteredProducts; trackBy: trackByProductId">
+        *ngFor="
+          let product of filteredProducts;
+          trackBy: trackByProductId
+        "
+      >
 
-        <div class="product-image-wrap">
-          <img [src]="product.image" [alt]="product.name" />
+        <!-- Product Image -->
+        <div class="product-image">
 
-          <span
-            class="stock-status"
-            [class.low-stock]="product.quantity <= product.minimumStock">
-            {{ stockStatus(product) }}
-          </span>
+          <img
+            *ngIf="product.image; else noImage"
+            [src]="product.image"
+            [alt]="product.name"
+          />
+
+          <ng-template #noImage>
+            <div class="no-image">
+              No Image
+            </div>
+          </ng-template>
+
         </div>
 
-        <div class="product-info">
+        <!-- Product Details -->
+        <div class="product-details">
+
           <h3>{{ product.name }}</h3>
-          <p class="product-type">Clothing Product</p>
 
-          <div class="quantity-row">
-            <span>Available Stock</span>
-            <strong>{{ product.quantity }} PCS</strong>
-          </div>
+          <p>
+            <strong>Available Stock:</strong>
+            <span>{{ product.quantity }} PCS</span>
+          </p>
 
-          <div class="quantity-row">
-            <span>Minimum Stock</span>
-            <span>{{ product.minimumStock }} PCS</span>
-          </div>
+          <p>
+            <strong>Received Date:</strong>
+            <span>
+              {{ product.receivedDate | date:'dd-MM-yyyy' }}
+            </span>
+          </p>
 
-          <div class="quantity-row">
-            <span>Storage Location</span>
+          <p>
+            <strong>Sponsor Name:</strong>
+            <span>{{ product.sponsorName }}</span>
+          </p>
+
+          <p>
+            <strong>Location:</strong>
             <span>{{ product.location || 'Not assigned' }}</span>
-          </div>
-
-          <div class="distribution-label">
-            <span class="ready-dot"></span>
-            Ready for distribution
-          </div>
-
-          
-<div class="product-actions">
-  <button
-    class="receive-btn"
-    type="button"
-    (click)="addReceivedStock(product)">
-    + Add Stock
-  </button>
-
-  <button
-    class="edit-btn"
-    type="button"
-    (click)="editProduct(product)">
-    Edit
-  </button>
-
-  <button
-    class="delete-btn"
-    type="button"
-    (click)="deleteProduct(product.id)">
-    Delete
-  </button>
-</div>
+          </p>
 
         </div>
+
+        <!-- Product Actions -->
+        <div class="product-actions">
+
+          <button
+            type="button"
+            class="receive-stock-btn"
+            (click)="addReceivedStock(product)"
+          >
+            + Receive Stock
+          </button>
+
+          <button
+            type="button"
+            class="edit-product-btn"
+            (click)="editProduct(product)"
+          >
+            Edit
+          </button>
+
+          <button
+            type="button"
+            class="delete-product-btn"
+            (click)="deleteProduct(product.id)"
+          >
+            Delete
+          </button>
+
+        </div>
+
       </article>
+
     </div>
 
-    <ng-template #empty>
-      <div class="empty-state">
-        <div class="empty-icon">👕</div>
-        <h3>No clothing products yet</h3>
-        <p>Add your first clothing product with an image and quantity.</p>
-        <button class="add-product-btn" (click)="openAddForm()">
-          + Add Clothing
-        </button>
+    <!-- Empty State -->
+    <ng-template #emptyProducts>
+      <div class="empty-products">
+
+        <h3>
+          {{
+            searchText
+              ? 'No matching products found'
+              : 'No products available'
+          }}
+        </h3>
+
+        <p>
+          {{
+            searchText
+              ? 'Try another product, sponsor, or location.'
+              : 'Click Add Product to register your first product.'
+          }}
+        </p>
+
       </div>
     </ng-template>
 
-  </section>
-</div>
-
-<!-- Add/Edit Clothing Modal -->
-<div class="modal-overlay" *ngIf="showForm" (click)="closeForm()">
-
-  <section
-    class="product-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="form-title"
-    (click)="$event.stopPropagation()">
-
-    <div class="modal-header">
-      <div>
-        <span class="eyebrow">LCC WAREHOUSE</span>
-        <h2 id="form-title">
-          {{ editingId !== null ? 'Edit Clothing' : 'Add Clothing' }}
-        </h2>
-        <p>Enter the received clothing stock details.</p>
-      </div>
-
-      <button class="close-btn" type="button" (click)="closeForm()">
-        ×
+    <!-- Switch to LCC -->
+    <div class="switch-lcc-container">
+      <button
+        type="button"
+        class="switch-lcc-btn"
+        (click)="openTransferForm()"
+      >
+        Switch to LCC →
       </button>
     </div>
 
-    <form #productFormRef="ngForm" (ngSubmit)="saveProduct()">
+  </section>
 
-      <div class="image-upload-section">
-        <label class="field-label">Clothing Image *</label>
+  <!-- Add / Edit Product Modal -->
+  <div
+    class="modal-overlay"
+    *ngIf="showForm"
+    (click)="closeForm()"
+  >
 
-        <div class="image-preview" *ngIf="imagePreview">
-          <img [src]="imagePreview" alt="Clothing image preview" />
+    <section
+      class="product-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="productFormTitle"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+
+        <div>
+          <h2 id="productFormTitle">
+            {{
+              editingId !== null
+                ? 'Edit Product'
+                : 'Add Product'
+            }}
+          </h2>
+
+          <p>Enter the product and stock details.</p>
         </div>
 
-        <label class="upload-box" for="clothingImage">
-          <span class="upload-icon">📷</span>
-          <strong>
-            {{ imagePreview ? 'Change clothing image' : 'Upload clothing image' }}
-          </strong>
-          <span>JPG, PNG or WebP — maximum 5 MB</span>
+        <button
+          type="button"
+          class="modal-close-btn"
+          aria-label="Close form"
+          (click)="closeForm()"
+        >
+          &times;
+        </button>
 
-          <input
-            id="clothingImage"
-            type="file"
-            accept="image/*"
-            (change)="onImageSelected($event)"
-            [required]="!productForm.image"
-          />
-        </label>
-
-        <p class="field-error" *ngIf="imageError">{{ imageError }}</p>
       </div>
 
-      <div class="form-grid">
+      <!-- Product Form -->
+      <form
+        class="product-form"
+        #productNgForm="ngForm"
+        (ngSubmit)="saveProduct()"
+      >
 
+        <!-- Product Name -->
         <div class="form-field">
-          <label for="clothingName">Clothing Name *</label>
-          <input
-            id="clothingName"
-            name="name"
-            [(ngModel)]="productForm.name"
-            required
-            maxlength="100"
-            placeholder="e.g. School Uniform"
-          />
+
+          <label for="productName">
+            Product Name <span>*</span>
+          </label>
+
+          <div class="product-name-row">
+
+            <select
+              id="productName"
+              name="name"
+              [(ngModel)]="productForm.name"
+              required
+            >
+              <option value="" disabled>
+                Select a product
+              </option>
+
+              <option
+                *ngFor="let item of productNames"
+                [value]="item"
+              >
+                {{ item }}
+              </option>
+            </select>
+
+            <button
+              type="button"
+              class="add-name-btn"
+              (click)="addNewProductName()"
+            >
+              + Add
+            </button>
+
+          </div>
+
         </div>
 
+        <!-- Quantity -->
         <div class="form-field">
-          <label for="quantity">Quantity Received (PCS) *</label>
+
+          <label for="quantity">
+            Quantity Received (PCS) <span>*</span>
+          </label>
+
           <input
             id="quantity"
+            type="number"
             name="quantity"
-            type="number"
             [(ngModel)]="productForm.quantity"
-            required
-            min="0"
+            min="1"
             step="1"
+            required
+            placeholder="Enter quantity"
           />
-          <small>These pieces become available for distribution.</small>
+
         </div>
 
+        <!-- Received Date -->
         <div class="form-field">
-          <label for="minimumStock">Minimum Stock (PCS) *</label>
+
+          <label for="receivedDate">
+            Received Date <span>*</span>
+          </label>
+
           <input
-            id="minimumStock"
-            name="minimumStock"
-            type="number"
-            [(ngModel)]="productForm.minimumStock"
+            id="receivedDate"
+            type="date"
+            name="receivedDate"
+            [(ngModel)]="productForm.receivedDate"
             required
-            min="0"
-            step="1"
           />
+
         </div>
 
+        <!-- Sponsor Name -->
         <div class="form-field">
-          <label for="location">Storage Location</label>
+
+          <label for="sponsorName">
+            Sponsor Name <span>*</span>
+          </label>
+
           <input
+            id="sponsorName"
+            type="text"
+            name="sponsorName"
+            [(ngModel)]="productForm.sponsorName"
+            required
+            placeholder="Enter sponsor name"
+          />
+
+        </div>
+
+        <!-- Location Dropdown -->
+        <div class="form-field">
+
+          <label for="location">
+            Location <span>*</span>
+          </label>
+
+          <select
             id="location"
             name="location"
             [(ngModel)]="productForm.location"
-            maxlength="60"
-            placeholder="e.g. Rack A1"
-          />
+            required
+          >
+            <option value="" disabled>
+              Select a location
+            </option>
+
+            <option
+              *ngFor="let location of locations"
+              [value]="location"
+            >
+              {{ location }}
+            </option>
+
+          </select>
+
+          <small class="field-help">
+            Select the warehouse location where the product is stored.
+          </small>
+
         </div>
 
-      </div>
+        <!-- Product Image -->
+        <div class="form-field">
 
-      <div class="modal-note">
-        📦 Quantity received will be the available stock after saving.
-      </div>
+          <label for="productImage">
+            Product Image <span>*</span>
+          </label>
 
-      <div class="modal-actions">
-        <button type="button" class="cancel-btn" (click)="closeForm()">
-          Cancel
-        </button>
+          <input
+            id="productImage"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="onImageSelected($event)"
+          />
 
-        <button
-          type="submit"
-          class="save-btn"
-          [disabled]="productFormRef.invalid || !productForm.image || !!imageError">
-          {{ editingId !== null ? 'Save Changes' : 'Save Clothing' }}
-        </button>
-      </div>
+          <small class="field-help">
+            Accepted formats: JPG, PNG, WebP.
+            Maximum file size: 5 MB.
+          </small>
 
-    </form>
-  </section>
+          <!-- Image Error -->
+          <p
+            class="image-error"
+            *ngIf="imageError"
+          >
+            {{ imageError }}
+          </p>
+
+          <!-- Image Preview -->
+          <div
+            class="image-preview"
+            *ngIf="imagePreview"
+          >
+            <img
+              [src]="imagePreview"
+              [alt]="productForm.name || 'Product preview'"
+            />
+
+            <span>Image Preview</span>
+          </div>
+
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeForm()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="save-product-btn"
+            [disabled]="productNgForm.invalid || !!imageError"
+          >
+            {{
+              editingId !== null
+                ? 'Update Product'
+                : 'Save Product'
+            }}
+          </button>
+
+        </div>
+
+      </form>
+
+    </section>
+
+  </div>
+
 </div>

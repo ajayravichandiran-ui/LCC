@@ -1,16 +1,21 @@
 import { Routes } from '@angular/router';
+import { LoginComponent } from './pages/login/login.component';
+import { SignupComponent } from './pages/signup/signup.component';
+import { ForgotPassword } from './pages/forgot-password/forgot-password';
 import { MainLayout } from './layout/main-layout/main-layout';
 
 export const routes: Routes = [
+  // -- Auth routes (no sidebar layout) --------------------------
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  { path: 'signup', component: SignupComponent },
+  { path: 'forgot-password', component: ForgotPassword },
+
+  // -- App routes (with sidebar layout) -------------------------
   {
     path: '',
     component: MainLayout,
     children: [
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full'
-      },
       {
         path: 'dashboard',
         loadComponent: () =>
@@ -23,8 +28,7 @@ export const routes: Routes = [
       }
     ]
   },
-  {
-    path: '**',
-    redirectTo: 'dashboard'
-  }
+
+  // -- Fallback -------------------------------------------------
+  { path: '**', redirectTo: 'login' }
 ];

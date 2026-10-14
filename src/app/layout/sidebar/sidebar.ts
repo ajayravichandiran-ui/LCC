@@ -1,6 +1,6 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-sidebar',
@@ -10,12 +10,18 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './sidebar.css'
 })
 export class Sidebar {
+  constructor(private router: Router) {}
+
   menuItems = [
-    { name: 'Dashboard', icon: '🏠', route: '/dashboard' },
-    { name: 'Products', icon: '📦', route: '/products' },
-    { name: 'Inventory', icon: '🏭', route: '/inventory' },
-    { name: 'Distribution', icon: '🚚', route: '/distribution' },
-    { name: 'Members', icon: '👥', route: '/members' },
-    { name: 'Reports', icon: '📊', route: '/reports' }
+    { name: 'Dashboard', icon: '\u{1F3E0}', route: '/dashboard' },
+    { name: 'Products', icon: '\u{1F4E6}', route: '/products' },
+    { name: 'LCC', icon: '\u{1F3ED}', route: '/inventory' },
+    { name: 'Distribution', icon: '\u{1F69A}', route: '/distribution' },
+    { name: 'Members', icon: '\u{1F465}', route: '/members' },
+    { name: 'Reports', icon: '\u{1F4CA}', route: '/reports' }
   ];
+
+  onLogout(): void {
+    this.router.navigate(['/login']);
+  }
 }

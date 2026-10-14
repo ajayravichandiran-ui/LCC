@@ -1,0 +1,885 @@
+/* =====================================================
+   RESET
+===================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+
+/* =====================================================
+   MAIN PAGE
+===================================================== */
+
+.page {
+  width: 100%;
+  height: 100vh;
+
+  display: flex;
+
+  overflow: hidden;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  background: #fff;
+
+  color: #172033;
+}
+
+
+/* =====================================================
+   LEFT SIDE
+===================================================== */
+
+.left {
+  width: 52%;
+  height: 100vh;
+
+  position: relative;
+
+  padding: 32px 6%;
+
+  overflow: hidden;
+
+  background: #fff;
+}
+
+
+/* =====================================================
+   DECORATIVE DOTS
+===================================================== */
+
+
+
+/* =====================================================
+   BRAND
+===================================================== */
+
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  position: absolute;
+  top: 15px;
+  left: 25px;
+
+  z-index: 100;
+}
+
+
+/* LOGO */
+
+.logo {
+  
+  width: 66px;
+  height: 66px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  background: transparent;
+
+  border-radius: 50%;
+
+  
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  display: block;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+  left: 180px;
+  top: -25px;
+
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.company-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.logo-text h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #14213d;
+  line-height: 1.4;
+}
+
+
+
+
+/* BRAND TEXT */
+
+.brand-content {
+  flex: 1;
+
+  min-width: 0;
+}
+
+.brand h1 {
+   font-size: clamp(25px, 2.7vw, 36px);
+  font-weight: 750;
+  color: #14213d;
+  white-space: nowrap;
+  letter-spacing: -0.7px;
+}
+
+.brand h1 span {
+  color: #f3b000;
+}
+
+.brand p {
+  margin-top: 5px;
+
+  color: #687184;
+
+  font-size: 14px;
+   font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+
+.message {
+  position: relative;
+  z-index: 10;
+  margin: 22px 20px 0 1%;
+  text-align: left;
+}
+
+
+.message h2 {
+   font-size: clamp(28px, 2.6vw, 36px);
+  line-height: 1.2;
+  font-weight: 750;
+  color: #152a49;
+}
+
+.message h2 span {
+  color: #f3b000;
+}
+
+.message p {
+  margin-top: 10px;
+
+  color: #687184;
+
+  font-size: 15px;
+}
+
+.message b {
+  color: #f3b000;
+}
+
+
+/* =====================================================
+   IMAGE SLIDER
+===================================================== */
+
+.photo-slider {
+   position: absolute;
+  left: 8px;
+  bottom: 0;
+  width: calc(100% - 8px);
+  height: 57%;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(100%);
+  transition:
+    opacity 1s ease,
+    transform 1s ease;
+  z-index: 1;
+}
+
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  z-index: 2;
+}
+
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+  display: block;
+}
+
+/* =====================================================
+   YELLOW CURVE
+===================================================== */
+
+.wave {
+  position: absolute;
+
+  left: -5%;
+
+  bottom: -94%;
+
+  width: 110%;
+
+  height: 120%;
+
+  background: #ffd33d;
+
+  border-radius: 50%;
+
+  z-index: 5;
+
+  pointer-events: none;
+}
+
+
+/* =====================================================
+   SLIDER DOTS
+===================================================== */
+
+.slider-dots {
+  position: absolute;
+
+  z-index: 10;
+
+  bottom: 12px;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+.slider-dots button {
+  width: 8px;
+  height: 8px;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background: white;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.slider-dots button.active {
+   width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd33d;
+}
+
+
+/* =====================================================
+   RIGHT SIDE
+===================================================== */
+
+.right {
+  width: 48%;
+  height: 100vh;
+
+  padding: 22px 5%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      #fff4c7,
+      transparent 42%
+    ),
+    #fff;
+}
+
+
+/* =====================================================
+   TOP SECURE LOGIN
+===================================================== */
+
+.top {
+  width: 100%;
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  align-items: center;
+
+  gap: 14px;
+
+  margin-bottom: 25px;
+
+  color: #202a3b;
+}
+
+
+/* SHIELD */
+
+.shield {
+  width: 27px;
+  height: 33px;
+
+  border: 3px solid #f5b400;
+
+  border-radius:
+    50% 50% 55% 55%;
+}
+
+
+/* =====================================================
+   LOGIN CARD
+===================================================== */
+
+.card {
+  width: 100%;
+
+  max-width: 620px;
+
+  background: #fff;
+
+  border: 1px solid #f0f0f0;
+
+  border-radius: 24px;
+
+  padding: 32px 38px;
+
+  box-shadow:
+    0 20px 60px #1b263b12;
+}
+
+
+/* WELCOME */
+
+.welcome {
+  color: #edae00;
+
+  font-weight: 700;
+
+  letter-spacing: 0.4px;
+}
+
+
+/* SIGN IN */
+
+.card h2 {
+  font-size: 42px;
+
+  margin-top: 5px;
+}
+
+
+/* DESCRIPTION */
+
+.desc {
+  margin-top: 10px;
+
+  color: #687184;
+
+  font-size: 14px;
+}
+
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+.input {
+  height: 68px;
+
+  border: 1px solid #efd16d;
+
+  border-radius: 12px;
+
+  margin-top: 18px;
+
+  padding: 0 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+}
+
+.input:focus-within {
+  box-shadow:
+    0 0 0 4px #f4bd1820;
+
+  border-color: #f0b600;
+}
+
+.input-box {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.input-box label {
+  display: block;
+  margin-bottom: 8px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.input-box input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-box input:focus {
+  border-color: #f0b600;
+  box-shadow: 0 0 0 3px rgba(240, 182, 0, 0.15);
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-wrapper input {
+  padding-right: 42px;
+}
+
+.password-wrapper .eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+
+
+/* ICON */
+
+.icon {
+  font-size: 21px;
+
+  opacity: 0.7;
+}
+
+
+/* FIELD */
+
+.field {
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+
+/* LABEL */
+
+.field label {
+  font-size: 12px;
+
+  color: #697386;
+
+  margin-bottom: 2px;
+}
+
+
+/* INPUT TEXT */
+
+.field input {
+  border: 0;
+
+  outline: 0;
+
+  font-size: 16px;
+
+  color: #172033;
+
+  background: transparent;
+
+  width: 100%;
+}
+
+
+/* EYE */
+
+
+.eye {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #14213d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.eye svg {
+  display: block;
+}
+
+.eye:focus-visible {
+  outline: 2px solid #f4b400;
+  border-radius: 4px;
+}
+
+
+/* =====================================================
+   OPTIONS
+===================================================== */
+
+.options {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-top: 18px;
+
+  font-size: 14px;
+}
+
+.options label {
+  color: #536073;
+}
+
+.options input {
+  accent-color: #f4b400;
+}
+
+.options a,
+.signup-text a {
+  color: #dfa500;
+
+  text-decoration: none;
+}
+
+
+/* =====================================================
+   LOGIN BUTTON
+===================================================== */
+
+.login {
+  width: 100%;
+
+  height: 54px;
+
+  margin-top: 20px;
+
+  border: 0;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ffc400,
+      #ffd83e
+    );
+
+  font-size: 17px;
+
+  font-weight: 700;
+
+  color: #172033;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 25px #eeb40033;
+
+  transition: 0.2s;
+}
+
+.login:hover {
+  transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   SIGN UP
+===================================================== */
+
+.signup-text {
+  text-align: center;
+
+  margin-top: 16px;
+
+  color: #687184;
+
+  font-size: 14px;
+}
+
+
+/* =====================================================
+   DIVIDER
+===================================================== */
+
+.divider {
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+  margin-top: 20px;
+
+  color: #7b8494;
+
+  font-size: 13px;
+}
+
+.divider span {
+  height: 1px;
+
+  background: #e5e7eb;
+
+  flex: 1;
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.footer {
+  margin-top: 16px;
+
+  text-align: center;
+
+  color: #7b8494;
+
+  font-size: 12px;
+}
+
+.footer b {
+  color: #f4b400;
+
+  margin: 0 6px;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1050px) {
+
+  .page {
+    flex-direction: column;
+
+    overflow-y: auto;
+
+    height: auto;
+
+    min-height: 100vh;
+  }
+
+  .left,
+  .right {
+    width: 100%;
+  }
+
+  .left {
+    height: 650px;
+
+    min-height: 650px;
+  }
+
+  .right {
+    height: auto;
+
+    min-height: 650px;
+
+    overflow: visible;
+
+    padding: 40px 5%;
+  }
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 650px) {
+
+  .left {
+    height: 600px;
+
+    min-height: 600px;
+
+    padding: 25px 22px;
+  }
+
+  .logo {
+    width: 62px;
+    height: 62px;
+  }
+
+  .brand {
+    gap: 12px;
+  }
+
+  .brand h1 {
+    font-size: 25px;
+  }
+
+  .brand p {
+    font-size: 10px;
+  }
+
+  .message {
+    margin-top: 22px;
+  }
+
+  .message h2 {
+    font-size: 28px;
+  }
+
+  .message p {
+    font-size: 14px;
+  }
+
+  .photo-slider {
+    height: 48%;
+  }
+
+  .photo-slider .slide img {
+    object-position: center;
+  }
+
+  .card {
+    padding: 30px 24px;
+
+    border-radius: 22px;
+  }
+
+  .card h2 {
+    font-size: 36px;
+  }
+}
+
+
+  .options {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 14px;
+  }
+
+  
+.forgot-password {
+  text-align: right;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+
+.forgot-password a {
+  color: #d99b00;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.forgot-password a:hover {
+  color: #14213d;
+  text-decoration: underline;
+}
+
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 20px;
+}
+
+.forgot-link {
+  color: #d99b00;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}

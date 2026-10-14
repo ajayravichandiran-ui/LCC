@@ -1,0 +1,247 @@
+<div class="page">
+
+  <!-- ================= LEFT SIDE ================= -->
+  <section class="left">
+
+    <!-- Decorative dots -->
+    <div class="dots">
+      <i></i><i></i><i></i>
+      <i></i><i></i><i></i>
+      <i></i><i></i><i></i>
+    </div>
+
+
+    <!-- ================= BRAND ================= -->
+    <div class="brand">
+
+      <div
+        class="logo"
+        (click)="refreshPage()"
+        title="Refresh Page">
+
+        <img
+          src="/asset/logo.png"
+          alt="Sanmarkkam Logo">
+
+      </div>
+
+      <div class="brand-content">
+
+        <h1>
+          sanmarkkam<span>.org</span>
+        </h1>
+
+        <p>
+          Share &nbsp;•&nbsp; Support &nbsp;•&nbsp;
+          Build a Better Tomorrow
+        </p>
+
+      </div>
+
+    </div>
+    <br>
+    <br>
+    <br>
+
+
+    <!-- ================= MESSAGE ================= -->
+    <div class="message">
+
+      <h2>
+        Your Kindness<br>
+        Creates <span>Change</span>
+      </h2>
+
+      <p>
+        <b>•</b> Food
+        <b>•</b> Care
+        <b>•</b> Hope
+      </p>
+
+    </div>
+
+
+    <!-- ================= IMAGE SLIDER ================= -->
+    <div class="photo-slider">
+
+  <div
+    class="slide"
+    *ngFor="let image of images; let i = index"
+    [class.active]="currentSlide === i">
+
+    <img
+      [src]="image"
+      alt="Helping person">
+
+  </div>
+
+  <div class="wave"></div>
+
+  <div class="slider-dots">
+
+    <button
+      *ngFor="let image of images; let i = index"
+      type="button"
+      [class.active]="currentSlide === i"
+      (click)="goToSlide(i)">
+    </button>
+
+  </div>
+
+</div>
+
+  </section>
+
+
+  <!-- ================= RIGHT SIDE ================= -->
+  <section class="right">
+
+    <!-- Secure Login -->
+
+    
+<div class="logo-container">
+  <img
+    src="/asset/logo1.png"
+    alt="Opon Logo"
+    class="company-logo"
+  />
+
+  <div class="logo-text">
+    <h5>ஒரு பொருள்</h5>
+    <h4>ஒரு நபர்</h4>
+  </div>
+</div>
+
+
+
+
+
+    <!-- ================= LOGIN CARD ================= -->
+    <div class="card">
+
+      <div class="welcome">
+        WELCOME BACK
+      </div>
+
+      <h2>
+        Sign In
+      </h2>
+
+      <p class="desc">
+        Enter your username and password to continue
+      </p>
+
+
+      
+<!-- Username -->
+<div class="input-box">
+  <label for="username">Username</label>
+  <input
+    id="username"
+    type="text"
+    [(ngModel)]="username"
+    placeholder="Enter username">
+</div>
+
+<!-- Password -->
+<div class="input-box">
+  <label for="password">Password</label>
+  <div class="password-wrapper">
+    <input
+      id="password"
+      [type]="showPassword ? 'text' : 'password'"
+      [(ngModel)]="password"
+      placeholder="Enter password">
+    <button
+      class="eye"
+      type="button"
+      (click)="togglePassword()"
+      aria-label="Show or hide password">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+
+      <!-- ================= OPTIONS ================= -->
+      <br>
+<div class="remember-row">
+
+  <label>
+    <input
+      type="checkbox"
+      [(ngModel)]="rememberMe">
+      
+
+    <span>Remember me</span>
+  </label>
+  <a routerLink="/forgot-password" class="forgot-link">
+    Forgot password?
+  </a>
+</div>
+
+
+
+      <!-- ================= LOGIN BUTTON ================= -->
+      <button
+        class="login"
+        type="button"
+        (click)="loginUser()">
+
+        Login &nbsp; →
+
+      </button>
+
+
+      <!-- ================= SIGN UP ================= -->
+      <div class="signup-text">
+
+        Don't have an account?
+
+       <a routerLink="/signup">Sign Up</a>
+
+      </div>
+
+
+      <!-- ================= DIVIDER ================= -->
+      <div class="divider">
+
+        <span></span>
+
+        <div>
+          OR
+        </div>
+
+        <span></span>
+
+      </div>
+
+
+      <!-- ================= FOOTER ================= -->
+      <div class="footer">
+
+        Secure Login
+        <b>•</b>
+        Easy Access
+        <b>•</b>
+        Better Together
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
