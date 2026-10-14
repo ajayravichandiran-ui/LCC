@@ -2,6 +2,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { LccService } from '../../services/lcc.service';
 
 interface Product {
   id: number;
@@ -9,7 +10,7 @@ interface Product {
   name: string;
   quantity: number;
   receivedDate: string;
-  sponsorName: string;
+  sponsorName?: string;
   image?: string;
   location: string;
 }
@@ -22,6 +23,8 @@ interface Product {
   styleUrl: './products.css'
 })
 export class Products {
+
+  // ==================== PRODUCTS ====================
 
   products: Product[] = [];
 
@@ -42,25 +45,158 @@ export class Products {
 
   searchText = '';
   showForm = false;
+  showTransferForm = false;
   editingId: number | null = null;
 
-  productForm: Product = this.emptyProduct();
+  // Product ID counter
+  nextProductId = 102;
 
-  // Create an empty product
-  emptyProduct(): Product {
-    return {
-      id: 0,
-      productId: '',
-      name: '',
-      quantity: 1,
-      receivedDate: this.getTodayDate(),
-      sponsorName: '',
-      image: '',
-      location: ''
-    };
+  constructor(private lccService: LccService) {
+    this.loadProducts();
   }
 
-  // Get today's date
+  private loadProducts(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = localStorage.getItem('warehouse_products');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.products = parsed;
+            const maxId = parsed.reduce((max: number, p: Product) => {
+              const num = parseInt(p.productId?.replace(/\D/g, '') || '0', 10);
+              return Math.max(max, num);
+            }, 101);
+            this.nextProductId = maxId + 1;
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load products from localStorage', e);
+    }
+  }
+
+  private saveProducts(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('warehouse_products', JSON.stringify(this.products));
+      }
+    } catch (e) {
+      console.error('Failed to save products to localStorage', e);
+    }
+  }
+
+  generateProductId(): string {
+    return `PR${this.nextProductId}`;
+  }
+
+  // ==================== TRANSFER FORM ====================
+
+  transferForm: {
+    productId: string;
+    date: string;
+    switchedBy: string;
+    quantity: number | null;
+  } = {
+    productId: '',
+    date: this.getTodayDate(),
+    switchedBy: '',
+    quantity: null
+  };
+
+  get selectedTransferProduct(): Product | undefined {
+    if (!this.transferForm.productId) {
+      return undefined;
+    }
+    const targetId = Number(this.transferForm.productId);
+    return this.products.find(
+      product => product.id === targetId
+    );
+  }
+
+  get remainingTransferStock(): number {
+    const product = this.selectedTransferProduct;
+    if (!product) {
+      return 0;
+    }
+
+    const qty = Number(this.transferForm.quantity);
+    if (!qty || isNaN(qty) || qty <= 0) {
+      return product.quantity;
+    }
+
+    const remaining = product.quantity - qty;
+    return remaining >= 0 ? remaining : 0;
+  }
+
+  openTransferForm(): void {
+    this.transferForm = {
+      productId: '',
+      date: this.getTodayDate(),
+      switchedBy: '',
+      quantity: null
+    };
+
+    this.showTransferForm = true;
+  }
+
+  closeTransferForm(): void {
+    this.showTransferForm = false;
+  }
+
+  confirmTransfer(): void {
+    const product = this.selectedTransferProduct;
+    const quantity = Number(this.transferForm.quantity);
+    const switchedBy = this.transferForm.switchedBy.trim();
+
+    if (!product) {
+      window.alert('Please select a product.');
+      return;
+    }
+
+    if (!this.transferForm.date || !switchedBy || !this.transferForm.quantity) {
+      window.alert('Please complete all required fields.');
+      return;
+    }
+
+    if (
+      !Number.isSafeInteger(quantity) ||
+      quantity < 1 ||
+      quantity > product.quantity
+    ) {
+      window.alert(
+        'Enter a valid quantity within available stock.'
+      );
+      return;
+    }
+
+    // Reduce warehouse stock
+    this.products = this.products.map(item =>
+      item.id === product.id
+        ? { ...item, quantity: item.quantity - quantity }
+        : item
+    );
+    this.saveProducts();
+
+    // Add transfer record to LCC
+    this.lccService.addTransfer({
+      productId: product.productId || '',
+      name: product.name,
+      quantity,
+      date: this.transferForm.date,
+      switchedBy,
+      location: product.location || 'Not assigned'
+    });
+
+    window.alert(
+      `${quantity} PCS of ${product.productId ? product.productId + ' (' + product.name + ')' : product.name} transferred to LCC successfully.`
+    );
+
+    this.closeTransferForm();
+  }
+
+  // ==================== DATE ====================
+
   private getTodayDate(): string {
     const today = new Date();
     const year = today.getFullYear();
@@ -70,7 +206,25 @@ export class Products {
     return `${year}-${month}-${day}`;
   }
 
-  // Add a new product name
+  // ==================== EMPTY PRODUCT ====================
+
+  emptyProduct(): Product {
+    return {
+      id: 0,
+      productId: this.generateProductId(),
+      name: '',
+      quantity: 1,
+      receivedDate: this.getTodayDate(),
+      sponsorName: '',
+      image: '',
+      location: ''
+    };
+  }
+
+  productForm: Product = this.emptyProduct();
+
+  // ==================== ADD PRODUCT NAME ====================
+
   addNewProductName(): void {
     const enteredName = window.prompt(
       'Enter the new product name:'
@@ -95,19 +249,21 @@ export class Products {
     this.productForm.name = name;
   }
 
-  // Filter products by ID, name, sponsor, or location
+  // ==================== SEARCH PRODUCTS ====================
+
   get filteredProducts(): Product[] {
     const search = this.searchText.trim().toLowerCase();
 
     return this.products.filter(product =>
-      (product.productId && product.productId.toLowerCase().includes(search)) ||
+      product.productId.toLowerCase().includes(search) ||
       product.name.toLowerCase().includes(search) ||
-      product.sponsorName.toLowerCase().includes(search) ||
+      (product.sponsorName ? product.sponsorName.toLowerCase().includes(search) : false) ||
       product.location.toLowerCase().includes(search)
     );
   }
 
-  // Calculate total stock
+  // ==================== TOTAL STOCK ====================
+
   get totalPieces(): number {
     return this.products.reduce(
       (total, product) => total + product.quantity,
@@ -115,35 +271,39 @@ export class Products {
     );
   }
 
-  // Open Add Product form
+  // ==================== OPEN ADD FORM ====================
+
   openAddForm(): void {
     this.editingId = null;
     this.productForm = this.emptyProduct();
     this.showForm = true;
   }
 
-  // Open Edit Product form
+  // ==================== EDIT PRODUCT ====================
+
   editProduct(product: Product): void {
     this.editingId = product.id;
+
     this.productForm = {
       ...product,
-      productId: product.productId || (product.id ? String(product.id) : '')
+      productId: product.productId ||
+        (product.id ? String(product.id) : '')
     };
+
     this.showForm = true;
   }
 
-  // Save or update a product
+  // ==================== SAVE PRODUCT ====================
+
   saveProduct(): void {
-    const productId = this.productForm.productId?.trim() ?? '';
+    const productId = this.productForm.productId.trim();
     const name = this.productForm.name.trim();
-    const sponsorName = this.productForm.sponsorName.trim();
     const location = this.productForm.location;
     const quantity = Number(this.productForm.quantity);
 
     if (
       !productId ||
       !name ||
-      !sponsorName ||
       !location ||
       !this.productForm.receivedDate
     ) {
@@ -158,19 +318,21 @@ export class Products {
       return;
     }
 
-    // Check for duplicate product ID
+    // Prevent duplicate Product IDs
     const isDuplicate = this.products.some(
       existing =>
-        existing.productId?.trim().toLowerCase() === productId.toLowerCase() &&
+        existing.productId.toLowerCase() === productId.toLowerCase() &&
         existing.id !== this.editingId
     );
 
     if (isDuplicate) {
-      window.alert('This Product ID already exists. Please enter a unique Product ID.');
+      window.alert(
+        'This Product ID already exists. Please use a unique ID.'
+      );
       return;
     }
 
-    // Add newly entered product names to the dropdown
+    // Add new product names to the dropdown
     if (
       !this.productNames.some(
         item => item.toLowerCase() === name.toLowerCase()
@@ -185,27 +347,33 @@ export class Products {
       name,
       quantity,
       receivedDate: this.productForm.receivedDate,
-      sponsorName,
+      sponsorName: this.productForm.sponsorName || '',
       image: this.productForm.image || '',
       location
     };
 
     if (this.editingId !== null) {
+      // Update existing product
       this.products = this.products.map(existing =>
         existing.id === this.editingId
           ? product
           : existing
       );
     } else {
+      // Add new product
       this.products = [...this.products, product];
+      this.nextProductId++;
     }
 
+    this.saveProducts();
     this.closeForm();
   }
 
-  // Add more received stock
+  // ==================== RECEIVE STOCK ====================
+
   addReceivedStock(product: Product): void {
     const input = window.prompt(
+      `Product ID: ${product.productId}\n` +
       `Product: ${product.name}\n` +
       `Location: ${product.location}\n` +
       `Current stock: ${product.quantity} PCS\n` +
@@ -237,6 +405,7 @@ export class Products {
           }
         : existing
     );
+    this.saveProducts();
 
     const updated = this.products.find(
       item => item.id === product.id
@@ -244,38 +413,37 @@ export class Products {
 
     if (updated) {
       window.alert(
-        `${updated.name} (${updated.location}): ` +
+        `${updated.productId} - ${updated.name}: ` +
         `${updated.quantity} PCS available.`
       );
     }
   }
 
-  // // Delete a product
-  // deleteProduct(id: number): void {
-  //   if (
-  //     window.confirm(
-  //       'Are you sure you want to delete this product?'
-  //     )
-  //   ) {
-  //     this.products = this.products.filter(
-  //       product => product.id !== id
-  //     );
-  //   }
-  // }
+  // ==================== DELETE PRODUCT ====================
 
-  // Close Add/Edit form
+  deleteProduct(id: number): void {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this product?'
+      )
+    ) {
+      this.products = this.products.filter(
+        product => product.id !== id
+      );
+      this.saveProducts();
+    }
+  }
+
+  // ==================== CLOSE ADD / EDIT FORM ====================
+
   closeForm(): void {
     this.showForm = false;
     this.editingId = null;
     this.productForm = this.emptyProduct();
   }
 
-  // Switch to LCC / Open Transfer Form
-  openTransferForm(): void {
-    window.alert('Switch to LCC / Transfer Form feature is under development.');
-  }
+  // ==================== TRACK PRODUCTS ====================
 
-  // Track products by ID
   trackByProductId(
     index: number,
     product: Product

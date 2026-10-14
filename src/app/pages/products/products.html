@@ -32,6 +32,8 @@
         <h2>{{ totalPieces }}</h2>
       </div>
 
+      
+
     </div>
 
     <!-- Search -->
@@ -39,7 +41,7 @@
       <input
         type="search"
         class="product-search"
-        placeholder="Search by product, ID, sponsor, or location..."
+        placeholder="Search by Product, ID, Producr Name, or location..."
         [(ngModel)]="searchText"
         aria-label="Search products"
       />
@@ -91,11 +93,6 @@
             <span>
               {{ product.receivedDate | date:'dd-MM-yyyy' }}
             </span>
-          </p>
-
-          <p>
-            <strong>Sponsor Name:</strong>
-            <span>{{ product.sponsorName }}</span>
           </p>
 
           <p>
@@ -153,7 +150,7 @@
         <p>
           {{
             searchText
-              ? 'Try another product, ID, sponsor, or location.'
+              ? 'Try another product, ID, or location.'
               : 'Click Add Product to register your first product.'
           }}
         </p>
@@ -168,11 +165,188 @@
         class="switch-lcc-btn"
         (click)="openTransferForm()"
       >
-        Switch to LCC →
+        <span class="btn-icon">⇄</span>
+        <span>Switch to LCC</span>
+        <span class="btn-arrow">&rarr;</span>
       </button>
     </div>
 
   </section>
+
+  <!-- Switch Stock to LCC Modal -->
+  <div
+    class="modal-overlay transfer-overlay"
+    *ngIf="showTransferForm"
+    (click)="closeTransferForm()"
+  >
+
+    <section
+      class="transfer-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="transferTitle"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Modal Header -->
+      <div class="transfer-header">
+        <div>
+          <h2 id="transferTitle">Switch Stock to LCC</h2>
+          <p>Transfer products from Warehouse to LCC Inventory.</p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close-btn"
+          aria-label="Close transfer form"
+          (click)="closeTransferForm()"
+        >
+          &times;
+        </button>
+      </div>
+
+      <!-- Transfer Form -->
+      <form
+        class="transfer-form"
+        #transferNgForm="ngForm"
+        (ngSubmit)="confirmTransfer()"
+      >
+
+        <!-- Product ID Dropdown -->
+        <div class="form-field">
+          <label for="transferProductId">
+            Product ID <span>*</span>
+          </label>
+
+          <select
+            id="transferProductId"
+            name="transferProductId"
+            [(ngModel)]="transferForm.productId"
+            required
+          >
+            <option value="" disabled>Select Product ID</option>
+            <option
+              *ngFor="let product of products"
+              [value]="product.id"
+              [disabled]="product.quantity < 1"
+            >
+              {{ product.productId + " - " + product.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Product Name Dropdown -->
+        <div class="form-field">
+          <label for="transferProduct">
+            Product Name <span>*</span>
+          </label>
+
+          <select
+            id="transferProduct"
+            name="productIdSelection"
+            [(ngModel)]="transferForm.productId"
+            required
+          >
+            <option value="" disabled>Select Product Name</option>
+            <option
+              *ngFor="let product of products"
+              [value]="product.id"
+              [disabled]="product.quantity < 1"
+            >
+              {{ product.name + " - " + product.productId }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Available Stock Banner -->
+        <div class="available-stock-banner" *ngIf="selectedTransferProduct">
+          <div class="stock-info-item">
+            <span class="stock-info-label">Available Stock</span>
+            <strong class="stock-info-value">{{ remainingTransferStock }} PCS</strong>
+          </div>
+          <div class="stock-info-item">
+            <span class="stock-info-label">Warehouse Location</span>
+            <strong class="stock-info-value">{{ selectedTransferProduct.location || 'Not assigned' }}</strong>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="form-field">
+          <label for="transferDate">Date <span>*</span></label>
+
+          <input
+            id="transferDate"
+            type="date"
+            name="date"
+            [(ngModel)]="transferForm.date"
+            required
+          />
+        </div>
+
+        <!-- Switched By -->
+        <div class="form-field">
+          <label for="switchedBy">Switched By <span>*</span></label>
+
+          <input
+            id="switchedBy"
+            type="text"
+            name="switchedBy"
+            [(ngModel)]="transferForm.switchedBy"
+            placeholder="Enter person's name"
+            required
+          />
+        </div>
+
+        <!-- Quantity -->
+        <div class="form-field">
+          <label for="transferQuantity">Quantity (PCS) <span>*</span></label>
+
+          <input
+            id="transferQuantity"
+            type="number"
+            name="quantity"
+            [(ngModel)]="transferForm.quantity"
+            min="1"
+            [max]="selectedTransferProduct?.quantity ?? 1"
+            step="1"
+            placeholder="Enter quantity"
+            required
+          />
+          <small class="field-help" *ngIf="selectedTransferProduct">
+            Maximum available to transfer: {{ selectedTransferProduct.quantity }} PCS
+          </small>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeTransferForm()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="confirm-transfer-btn"
+            [disabled]="
+              transferNgForm.invalid ||
+              !selectedTransferProduct ||
+              !transferForm.quantity ||
+              transferForm.quantity < 1 ||
+              transferForm.quantity > (selectedTransferProduct?.quantity ?? 0)
+            "
+          >
+            Confirm Transfer
+          </button>
+        </div>
+
+      </form>
+
+    </section>
+
+  </div>
 
   <!-- Add / Edit Product Modal -->
   <div
@@ -316,23 +490,6 @@
 
         </div>
 
-        <!-- Sponsor Name -->
-        <div class="form-field">
-
-          <label for="sponsorName">
-            Sponsor Name <span>*</span>
-          </label>
-
-          <input
-            id="sponsorName"
-            type="text"
-            name="sponsorName"
-            [(ngModel)]="productForm.sponsorName"
-            required
-            placeholder="Enter sponsor name"
-          />
-
-        </div>
 
         <!-- Location Dropdown -->
         <div class="form-field">

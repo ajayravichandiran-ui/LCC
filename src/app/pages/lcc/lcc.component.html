@@ -1,0 +1,133 @@
+<div class="lcc-page">
+
+  <!-- Page Header -->
+  <header class="lcc-header">
+    <div class="header-text">
+      <h1>LCC Management</h1>
+      <p>Manage and track products transferred from warehouse to LCC inventory.</p>
+    </div>
+
+    <!-- <button
+      type="button"
+      class="switch-stock-btn"
+      (click)="goBackToProducts()"
+    >
+      + Switch Stock in Products
+    </button> -->
+  </header>
+
+  <!-- LCC Register -->
+  <section class="lcc-register">
+
+    <!-- Stock Summary -->
+    <div class="stock-summary">
+        <div class="summary-card">
+        <span class="summary-label">Total Pieces in LCC</span>
+        <h2>{{ totalPieces }}</h2>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label">Total LCC Items</span>
+        <h2>{{ totalItems }}</h2>
+      </div>
+
+      
+    </div>
+
+    <!-- Search Toolbar -->
+    <div class="lcc-toolbar">
+      <input
+        type="search"
+        class="lcc-search"
+        placeholder="Search by Product, ID, Switched By, or location..."
+        [(ngModel)]="searchText"
+        aria-label="Search LCC items"
+      />
+    </div>
+
+    <!-- Transferred Products Grid (as per Product Page) -->
+    <div
+      class="products-grid"
+      *ngIf="filteredItems.length > 0; else emptyLcc"
+    >
+      <article
+        class="product-card"
+        *ngFor="let item of filteredItems; trackBy: trackByTransferId"
+      >
+        <!-- Product Details -->
+        <div class="product-details">
+
+          <span class="product-id-badge" *ngIf="item.productId">
+            {{ item.productId }}
+          </span>
+
+          <h3>{{ item.name }}</h3>
+
+          <p *ngIf="item.productId">
+            <strong>Product ID:</strong>
+            <span>{{ item.productId }}</span>
+          </p>
+
+          <p>
+            <strong>LCC Stock:</strong>
+            <span class="stock-value-highlight">{{ item.quantity }} PCS</span>
+          </p>
+
+          <p>
+            <strong>Transfer Date:</strong>
+            <span>{{ item.date | date:'dd-MM-yyyy' }}</span>
+          </p>
+
+          <p>
+            <strong>Switched By:</strong>
+            <span>{{ item.switchedBy }}</span>
+          </p>
+
+          <p>
+            <strong>Warehouse Location:</strong>
+            <span>{{ item.location || 'Not assigned' }}</span>
+          </p>
+
+        </div>
+
+        <!-- Card Actions -->
+        <div class="product-actions">
+          <button
+            type="button"
+            class="remove-record-btn"
+            (click)="deleteTransfer(item.id)"
+          >
+            Remove Record
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #emptyLcc>
+      <div class="empty-state">
+        <div class="empty-icon">&#128230;</div>
+        <h3>
+          {{ searchText ? 'No matching LCC items found' : 'No LCC items transferred yet' }}
+        </h3>
+        <p>
+          {{
+            searchText
+              ? 'Try searching by another product name, ID, or switched by.'
+              : 'Transfer products from the warehouse using "Switch to LCC" on the Products page.'
+          }}
+        </p>
+        <button
+          type="button"
+          class="empty-action-btn"
+          *ngIf="!searchText"
+          (click)="goBackToProducts()"
+        >
+          Go to Products
+        </button>
+      </div>
+    </ng-template>
+
+  </section>
+
+</div>
