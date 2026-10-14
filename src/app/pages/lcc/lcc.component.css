@@ -10,10 +10,10 @@
 }
 
 .lcc-page {
-  min-height: 100%;
+  min-height: 100vh;
   min-width: 0;
   padding: 40px 36px;
-  background: #fffdf8;
+  background: linear-gradient(135deg, #fff7d6 0%, #fffcf2 35%, #ffffff 100%);
   color: #263238;
 }
 
@@ -91,18 +91,30 @@ button {
 }
 
 .summary-card {
+  position: relative;
+  overflow: hidden;
   padding: 20px;
-  border: 1px solid #eeece5;
+  border: 1px solid #fae69e;
   border-radius: 14px;
-  background: #fffdf7;
+  background: linear-gradient(180deg, #fff8dc 0%, #fffdf8 45px, #ffffff 90px);
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, #ffe082, #ffd54f);
 }
 
 .summary-label {
   display: block;
   margin-bottom: 10px;
-  color: #7b8490;
+  color: #4b5563;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .summary-card h2 {
@@ -154,17 +166,31 @@ button {
 }
 
 .product-card {
+  position: relative;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid #eeece5;
-  border-radius: 17px;
+  border: 1px solid #dfd8cb;
+  border-radius: 18px;
   background: #ffffff;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 16px rgba(34, 45, 61, 0.05), 0 1px 3px rgba(34, 45, 61, 0.04);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.product-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, #ffe082, #ffd54f);
+  z-index: 2;
 }
 
 .product-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(34, 45, 61, 0.07);
+  transform: translateY(-4px);
+  border-color: #ffd54f;
+  box-shadow: 0 12px 28px rgba(34, 45, 61, 0.1), 0 3px 8px rgba(214, 168, 0, 0.14);
 }
 
 /* ==================== PRODUCT DETAILS ==================== */
@@ -176,54 +202,58 @@ button {
 .product-id-badge {
   display: inline-block;
   margin-bottom: 10px;
-  padding: 3px 9px;
-  border-radius: 6px;
-  background: #f4f5f7;
-  color: #556272;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 7px;
+  background: #fff3c4;
+  border: 1px solid #ffe082;
+  color: #785b00;
+  font-size: 11.5px;
+  font-weight: 750;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
 }
 
 .product-details h3 {
-  margin: 0 0 16px;
-  color: #263442;
+  margin: 0 0 18px;
+  color: #111827;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 750;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .product-details p {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   margin: 0;
-  padding: 10px 0;
-  border-bottom: 1px solid #f0eee8;
-  color: #78818d;
-  font-size: 12.5px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0eee6;
+  font-size: 13px;
   line-height: 1.5;
 }
 
 .product-details p strong {
   flex-shrink: 0;
-  color: #344054;
-  font-weight: 600;
+  color: #374151;
+  font-weight: 650;
 }
 
 .product-details p span {
   text-align: right;
-  color: #263442;
+  color: #1f2937;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .stock-value-highlight {
-  font-weight: 750;
-  color: #8c7830 !important;
+  font-weight: 750 !important;
+  color: #1e293b !important;
   background: #fff8e1;
-  padding: 2px 7px;
-  border-radius: 5px;
+  border: 1px solid #ffecb3;
+  padding: 2px 8px;
+  border-radius: 6px;
 }
 
 /* ==================== ACTIONS ==================== */
@@ -232,8 +262,8 @@ button {
   display: flex;
   gap: 10px;
   padding: 14px 22px 18px;
-  border-top: 1px solid #f0eee8;
-  background: #faf9f5;
+  border-top: 1px solid #f5f2eb;
+  background: #fffdfa;
 }
 
 .remove-record-btn {

@@ -8,9 +8,10 @@
 .dashboard-page {
   width: 100%;
   min-width: 0;
+  min-height: 100vh;
   padding: 0 36px 36px;
   color: #263238;
-  background: #fffdf8;
+  background: linear-gradient(135deg, #fff7d6 0%, #fffcf2 35%, #ffffff 100%);
 }
 
 /* Header */
@@ -81,18 +82,31 @@
 }
 
 .stat-card {
+  position: relative;
+  overflow: hidden;
   min-width: 0;
   padding: 23px;
-  background: #fff;
-  border: 1px solid #eeece5;
+  background: linear-gradient(180deg, #fff8dc 0%, #fffdf8 52px, #ffffff 100px);
+  border: 1px solid #fae69e;
   border-radius: 18px;
   box-shadow: 0 5px 18px rgba(34, 45, 61, 0.025);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ffe082, #ffd54f);
 }
 
 .stat-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 9px 25px rgba(34, 45, 61, 0.07);
+  border-color: #f3d472;
+  box-shadow: 0 9px 25px rgba(214, 168, 0, 0.12), 0 5px 18px rgba(34, 45, 61, 0.04);
 }
 
 .stat-top {
@@ -103,8 +117,9 @@
 }
 
 .stat-title {
-  color: #687384;
+  color: #4b5563;
   font-size: 14px;
+  font-weight: 600;
   line-height: 1.5;
 }
 

@@ -1,17 +1,20 @@
+
 import { Routes } from '@angular/router';
+
 import { LoginComponent } from './pages/login/login.component';
 import { SignupComponent } from './pages/signup/signup.component';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
+
 import { MainLayout } from './layout/main-layout/main-layout';
 
 export const routes: Routes = [
-  // -- Auth routes (no sidebar layout) --------------------------
+  // 1. Authentication routes (without sidebar)
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'forgot-password', component: ForgotPassword },
 
-  // -- App routes (with sidebar layout) -------------------------
+  // 2. Application routes (with sidebar)
   {
     path: '',
     component: MainLayout,
@@ -34,6 +37,6 @@ export const routes: Routes = [
     ]
   },
 
-  // -- Fallback -------------------------------------------------
+  // 3. Fallback route (unknown URLs)
   { path: '**', redirectTo: 'login' }
 ];
