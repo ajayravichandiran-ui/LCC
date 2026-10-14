@@ -39,6 +39,23 @@ export class LccService {
     return this.itemsSubject.value;
   }
 
+  getWarehouseProducts(): any[] {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const data = localStorage.getItem('warehouse_products');
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load warehouse products from localStorage', e);
+    }
+    return [];
+  }
+
   addTransfer(item: Omit<LccTransferItem, 'id' | 'createdAt'>): LccTransferItem {
     const newItem: LccTransferItem = {
       ...item,

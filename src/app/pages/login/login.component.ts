@@ -35,21 +35,25 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+    this.startSliderTimer();
+  }
 
+  private startSliderTimer(): void {
     this.sliderInterval = setInterval(() => {
-
       this.currentSlide++;
-
       if (this.currentSlide >= this.images.length) {
         this.currentSlide = 0;
       }
-
-    }, 3000);
-
+    }, 5000); // 5 seconds per slide
   }
 
   goToSlide(index: number): void {
     this.currentSlide = index;
+    // Reset timer so the user gets a full 5 seconds on the selected slide
+    if (this.sliderInterval) {
+      clearInterval(this.sliderInterval);
+    }
+    this.startSliderTimer();
   }
 
   togglePassword(): void {

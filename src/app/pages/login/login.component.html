@@ -1,242 +1,206 @@
 <div class="page">
 
-  <!-- ================= LEFT SIDE ================= -->
+  <!-- ================= LEFT SIDE (BRAND & HERO) ================= -->
   <section class="left">
 
     <!-- Decorative dots -->
-    <div class="dots">
+    <div class="dots" aria-hidden="true">
       <i></i><i></i><i></i>
       <i></i><i></i><i></i>
       <i></i><i></i><i></i>
     </div>
 
-
-    <!-- ================= BRAND ================= -->
+    <!-- Brand Header -->
     <div class="brand">
-
       <div
         class="logo"
         (click)="refreshPage()"
-        title="Refresh Page">
-
+        title="Refresh Page"
+        tabindex="0"
+        role="button">
         <img
           src="/asset/logo.png"
           alt="Sanmarkkam Logo">
-
       </div>
 
       <div class="brand-content">
-
         <h1>
           sanmarkkam<span>.org</span>
         </h1>
-
         <p>
-          Share &nbsp;•&nbsp; Support &nbsp;•&nbsp;
-          Build a Better Tomorrow
+          Share &nbsp;•&nbsp; Support &nbsp;•&nbsp; Build a Better Tomorrow
         </p>
-
       </div>
-
     </div>
-    <br>
-    <br>
-    <br>
 
-
-    <!-- ================= MESSAGE ================= -->
+    <!-- Message Content -->
     <div class="message">
-
       <h2>
         Your Kindness<br>
         Creates <span>Change</span>
       </h2>
 
-      <p>
-        <b>•</b> Food
-        <b>•</b> Care
-        <b>•</b> Hope
-      </p>
-
+      <div class="impact-tags">
+        <span class="impact-tag"><b>•</b> Food</span>
+        <span class="impact-tag"><b>•</b> Care</span>
+        <span class="impact-tag"><b>•</b> Hope</span>
+      </div>
     </div>
 
-
-    <!-- ================= IMAGE SLIDER ================= -->
+    <!-- Image Slider -->
     <div class="photo-slider">
+      <div
+        class="slides-track"
+        [style.transform]="'translateX(-' + (currentSlide * 100) + '%)'">
+        <div
+          class="slide"
+          *ngFor="let image of images; let i = index">
+          <img
+            [src]="image"
+            alt="Helping person">
+        </div>
+      </div>
 
-  <div
-    class="slide"
-    *ngFor="let image of images; let i = index"
-    [class.active]="currentSlide === i">
+      <div class="wave"></div>
 
-    <img
-      [src]="image"
-      alt="Helping person">
-
-  </div>
-
-  <div class="wave"></div>
-
-  <div class="slider-dots">
-
-    <button
-      *ngFor="let image of images; let i = index"
-      type="button"
-      [class.active]="currentSlide === i"
-      (click)="goToSlide(i)">
-    </button>
-
-  </div>
-
-</div>
+      <div class="slider-dots">
+        <button
+          *ngFor="let image of images; let i = index"
+          type="button"
+          [class.active]="currentSlide === i"
+          (click)="goToSlide(i)"
+          [attr.aria-label]="'Slide ' + (i + 1)">
+        </button>
+      </div>
+    </div>
 
   </section>
 
-
-  <!-- ================= RIGHT SIDE ================= -->
+  <!-- ================= RIGHT SIDE (AUTH FORM) ================= -->
   <section class="right">
 
-    <!-- Secure Login -->
+    <div class="right-container">
 
-    
-<div class="logo-container">
-  <img
-    src="/asset/logo1.png"
-    alt="Opon Logo"
-    class="company-logo"
-  />
+      <!-- Company Brand Pill -->
+      <div class="logo-container">
+        <img
+          src="/asset/logo1.png"
+          alt="Opon Logo"
+          class="company-logo"
+        />
 
-  <div class="logo-text">
-    <h5>ஒரு பொருள்</h5>
-    <h4>ஒரு நபர்</h4>
-  </div>
-</div>
-
-
-
-
-
-    <!-- ================= LOGIN CARD ================= -->
-    <div class="card">
-
-      <div class="welcome">
-        WELCOME BACK
+        <div class="logo-text">
+          <span class="logo-sub">ஒரு பொருள்</span>
+          <span class="logo-main">ஒரு நபர்</span>
+        </div>
       </div>
 
-      <h2>
-        Sign In
-      </h2>
+      <!-- Login Card -->
+      <div class="card">
 
-      <p class="desc">
-        Enter your username and password to continue
-      </p>
-
-
-      
-<!-- Username -->
-<div class="input-box">
-  <label for="username">Username</label>
-  <input
-    id="username"
-    type="text"
-    [(ngModel)]="username"
-    placeholder="Enter username">
-</div>
-
-<!-- Password -->
-<div class="input-box">
-  <label for="password">Password</label>
-  <div class="password-wrapper">
-    <input
-      id="password"
-      [type]="showPassword ? 'text' : 'password'"
-      [(ngModel)]="password"
-      placeholder="Enter password">
-    <button
-      class="eye"
-      type="button"
-      (click)="togglePassword()"
-      aria-label="Show or hide password">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.8"
-        stroke-linecap="round"
-        stroke-linejoin="round">
-        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
-        <circle cx="12" cy="12" r="3"/>
-      </svg>
-    </button>
-  </div>
-</div>
-
-
-      <!-- ================= OPTIONS ================= -->
-      <br>
-<div class="remember-row">
-
-  <label>
-    <input
-      type="checkbox"
-      [(ngModel)]="rememberMe">
-      
-
-    <span>Remember me</span>
-  </label>
-  <a routerLink="/forgot-password" class="forgot-link">
-    Forgot password?
-  </a>
-</div>
-
-
-
-      <!-- ================= LOGIN BUTTON ================= -->
-      <button
-        class="login"
-        type="button"
-        (click)="loginUser()">
-
-        Login &nbsp; →
-
-      </button>
-
-
-      <!-- ================= SIGN UP ================= -->
-      <div class="signup-text">
-
-        Don't have an account?
-
-       <a routerLink="/signup">Sign Up</a>
-
-      </div>
-
-
-      <!-- ================= DIVIDER ================= -->
-      <div class="divider">
-
-        <span></span>
-
-        <div>
-          OR
+        <div class="welcome">
+          WELCOME BACK
         </div>
 
-        <span></span>
+        <h2>Sign In</h2>
 
-      </div>
+        <p class="desc">
+          Enter your username and password to continue
+        </p>
 
+        <form (ngSubmit)="loginUser()">
 
-      <!-- ================= FOOTER ================= -->
-      <div class="footer">
+          <!-- Username -->
+          <div class="input-box">
+            <label for="username">Username</label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              [(ngModel)]="username"
+              placeholder="Enter username"
+              autocomplete="username"
+              required>
+          </div>
 
-        Secure Login
-        <b>•</b>
-        Easy Access
-        <b>•</b>
-        Better Together
+          <!-- Password -->
+          <div class="input-box">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+              <input
+                id="password"
+                name="password"
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password"
+                placeholder="Enter password"
+                autocomplete="current-password"
+                required>
+              <button
+                class="eye"
+                type="button"
+                (click)="togglePassword()"
+                aria-label="Show or hide password">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Options Row -->
+          <div class="remember-row">
+            <label class="remember-label">
+              <input
+                type="checkbox"
+                name="rememberMe"
+                [(ngModel)]="rememberMe">
+              <span>Remember me</span>
+            </label>
+            <a routerLink="/forgot-password" class="forgot-link">
+              Forgot password?
+            </a>
+          </div>
+
+          <!-- Login Button -->
+          <button
+            class="login"
+            type="submit">
+            Login &nbsp; →
+          </button>
+
+        </form>
+
+        <!-- Sign Up Link -->
+        <div class="signup-text">
+          Don't have an account?
+          <a routerLink="/signup">Sign Up</a>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span></span>
+          <div>OR</div>
+          <span></span>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          Secure Login
+          <b>•</b>
+          Easy Access
+          <b>•</b>
+          Better Together
+        </div>
 
       </div>
 
