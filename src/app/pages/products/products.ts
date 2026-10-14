@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 
 interface Product {
   id: number;
+  productId: string;
   name: string;
   quantity: number;
   receivedDate: string;
   sponsorName: string;
-  image: string;
+  image?: string;
   location: string;
 }
 
@@ -42,8 +43,6 @@ export class Products {
   searchText = '';
   showForm = false;
   editingId: number | null = null;
-  imagePreview = '';
-  imageError = '';
 
   productForm: Product = this.emptyProduct();
 
@@ -51,6 +50,7 @@ export class Products {
   emptyProduct(): Product {
     return {
       id: 0,
+      productId: '',
       name: '',
       quantity: 1,
       receivedDate: this.getTodayDate(),
@@ -95,11 +95,12 @@ export class Products {
     this.productForm.name = name;
   }
 
-  // Filter products by name, sponsor, or location
+  // Filter products by ID, name, sponsor, or location
   get filteredProducts(): Product[] {
     const search = this.searchText.trim().toLowerCase();
 
     return this.products.filter(product =>
+      (product.productId && product.productId.toLowerCase().includes(search)) ||
       product.name.toLowerCase().includes(search) ||
       product.sponsorName.toLowerCase().includes(search) ||
       product.location.toLowerCase().includes(search)
@@ -118,80 +119,29 @@ export class Products {
   openAddForm(): void {
     this.editingId = null;
     this.productForm = this.emptyProduct();
-    this.imagePreview = '';
-    this.imageError = '';
     this.showForm = true;
   }
 
   // Open Edit Product form
   editProduct(product: Product): void {
     this.editingId = product.id;
-    this.productForm = { ...product };
-    this.imagePreview = product.image;
-    this.imageError = '';
+    this.productForm = {
+      ...product,
+      productId: product.productId || (product.id ? String(product.id) : '')
+    };
     this.showForm = true;
-  }
-
-  // Handle product image upload
-  onImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    this.imageError = '';
-
-    if (!file) {
-      return;
-    }
-
-    const allowedTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/webp'
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      this.imageError =
-        'Please select a JPG, PNG, or WebP image.';
-      input.value = '';
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      this.imageError =
-        'Image size must be 5 MB or less.';
-      input.value = '';
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      if (typeof reader.result !== 'string') {
-        this.imageError =
-          'Unable to preview this image.';
-        return;
-      }
-
-      this.imagePreview = reader.result;
-      this.productForm.image = reader.result;
-    };
-
-    reader.onerror = () => {
-      this.imageError =
-        'Unable to read the image. Please try again.';
-    };
-
-    reader.readAsDataURL(file);
   }
 
   // Save or update a product
   saveProduct(): void {
+    const productId = this.productForm.productId?.trim() ?? '';
     const name = this.productForm.name.trim();
     const sponsorName = this.productForm.sponsorName.trim();
     const location = this.productForm.location;
     const quantity = Number(this.productForm.quantity);
 
     if (
+      !productId ||
       !name ||
       !sponsorName ||
       !location ||
@@ -201,16 +151,22 @@ export class Products {
       return;
     }
 
-    if (!this.productForm.image || this.imageError) {
-      this.imageError =
-        'Please upload one product image.';
-      return;
-    }
-
     if (!Number.isSafeInteger(quantity) || quantity < 1) {
       window.alert(
         'Quantity must be a positive whole number.'
       );
+      return;
+    }
+
+    // Check for duplicate product ID
+    const isDuplicate = this.products.some(
+      existing =>
+        existing.productId?.trim().toLowerCase() === productId.toLowerCase() &&
+        existing.id !== this.editingId
+    );
+
+    if (isDuplicate) {
+      window.alert('This Product ID already exists. Please enter a unique Product ID.');
       return;
     }
 
@@ -225,11 +181,12 @@ export class Products {
 
     const product: Product = {
       id: this.editingId ?? Date.now(),
+      productId,
       name,
       quantity,
       receivedDate: this.productForm.receivedDate,
       sponsorName,
-      image: this.productForm.image,
+      image: this.productForm.image || '',
       location
     };
 
@@ -293,25 +250,23 @@ export class Products {
     }
   }
 
-  // Delete a product
-  deleteProduct(id: number): void {
-    if (
-      window.confirm(
-        'Are you sure you want to delete this product?'
-      )
-    ) {
-      this.products = this.products.filter(
-        product => product.id !== id
-      );
-    }
-  }
+  // // Delete a product
+  // deleteProduct(id: number): void {
+  //   if (
+  //     window.confirm(
+  //       'Are you sure you want to delete this product?'
+  //     )
+  //   ) {
+  //     this.products = this.products.filter(
+  //       product => product.id !== id
+  //     );
+  //   }
+  // }
 
   // Close Add/Edit form
   closeForm(): void {
     this.showForm = false;
     this.editingId = null;
-    this.imagePreview = '';
-    this.imageError = '';
     this.productForm = this.emptyProduct();
   }
 

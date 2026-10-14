@@ -211,6 +211,19 @@ button {
   padding: 20px;
 }
 
+.product-id-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f4f5f7;
+  color: #556272;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
 .product-details h3 {
   margin: 0 0 18px;
   color: #263442;
@@ -474,27 +487,6 @@ button {
   cursor: pointer;
 }
 
-.form-field input[type="file"] {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.form-field input[type="file"]::file-selector-button {
-  margin-right: 12px;
-  padding: 8px 12px;
-  border: 1px solid #e6e4de;
-  border-radius: 7px;
-  background: #fff8e5;
-  color: #344054;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.form-field input[type="file"]::file-selector-button:hover {
-  background: #ffefb4;
-}
-
 
 /* ==================== PRODUCT NAME + ADD BUTTON ==================== */
 
@@ -556,7 +548,7 @@ button {
 }
 
 
-/* ==================== FIELD HELP AND ERRORS ==================== */
+/* ==================== FIELD HELP ==================== */
 
 .field-help {
   display: block;
@@ -564,41 +556,6 @@ button {
   color: #858d99;
   font-size: 11px;
   line-height: 1.6;
-}
-
-.image-error {
-  margin: 9px 0 0;
-  color: #c53636;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-
-/* ==================== IMAGE PREVIEW ==================== */
-
-.image-preview {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-  padding: 12px;
-  border: 1px solid #eee9dc;
-  border-radius: 12px;
-  background: #fffaf0;
-}
-
-.image-preview img {
-  display: block;
-  width: 100%;
-  max-height: 200px;
-  border-radius: 8px;
-  object-fit: contain;
-}
-
-.image-preview span {
-  color: #7b8490;
-  font-size: 12px;
 }
 
 
