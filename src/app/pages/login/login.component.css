@@ -1044,3 +1044,37 @@
   50% { opacity: 0.95; }
   100% { transform: translate(-50%, -50%) scale(9); opacity: 0; }
 }
+
+/* =====================================================
+   INLINE ERROR BANNER
+===================================================== */
+.login-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  animation: bannerFadeIn 0.25s ease-out;
+}
+
+.login-error-banner svg {
+  flex-shrink: 0;
+  stroke: #dc2626;
+}
+
+@keyframes bannerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

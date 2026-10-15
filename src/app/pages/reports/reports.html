@@ -1,0 +1,429 @@
+<div class="reports-page">
+
+    <!-- Page Header -->
+    <header class="reports-header">
+        <div class="header-text">
+            <h1>Reports</h1>
+            <p>Audit records of every single data entry, stock update, and transfer.</p>
+        </div>
+
+        <div class="header-actions">
+            <button type="button" class="action-btn btn-export-csv" (click)="exportCsv()"
+                title="Download CSV report file">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export CSV
+            </button>
+
+            <!-- <button type="button" class="action-btn btn-export-json" (click)="exportJson()" title="Download JSON file">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                JSON File
+            </button> -->
+
+            <button type="button" class="action-btn btn-print" (click)="printReport()" title="Print or save as PDF">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                Print
+            </button>
+
+            <!-- <button type="button" class="action-btn btn-manual" (click)="openManualEntryModal()"
+                title="Add a manual audit entry">
+                + Record Entry
+            </button> -->
+
+            <!-- <button type="button" class="action-btn btn-clear-logs" (click)="clearAllRecords()"
+                title="Clear all recorded logs">
+                ↺ Clear Logs
+            </button> -->
+        </div>
+    </header>
+
+    <!-- Summary Cards -->
+    <section class="summary-section">
+        <div class="summary-grid">
+
+            <div class="summary-card">
+                <div class="summary-icon icon-records">📋</div>
+                <div class="summary-info">
+                    <span class="summary-label">Total Data Entries</span>
+                    <h2>{{ totalRecords }}</h2>
+                    <span class="summary-sub">All line-by-line entries</span>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-icon icon-received">📥</div>
+                <div class="summary-info">
+                    <span class="summary-label">Total Stock Received</span>
+                    <h2>{{ totalReceivedQty }} <span class="unit">PCS</span></h2>
+                    <span class="summary-sub">Recorded replenishments</span>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-icon icon-transferred">🔄</div>
+                <div class="summary-info">
+                    <span class="summary-label">Stock Transferred</span>
+                    <h2>{{ totalTransferredQty }} <span class="unit">PCS</span></h2>
+                    <span class="summary-sub">Transferred to LCC</span>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-icon icon-products">📦</div>
+                <div class="summary-info">
+                    <span class="summary-label">Products Logged</span>
+                    <h2>{{ uniqueProductsCount }}</h2>
+                    <span class="summary-sub">Distinct product IDs</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Reports Filter & Toolbar -->
+    <section class="reports-toolbar-card">
+        <div class="toolbar-row">
+
+            <!-- Search Input -->
+            <div class="search-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="search" placeholder="Search by Product ID, Name, Updated By, Location, Record ID..."
+                    [(ngModel)]="searchText" (ngModelChange)="onFilterChange()" aria-label="Search report records" />
+            </div>
+
+            <!-- Event Type Filter -->
+            <div class="filter-group">
+                <label for="eventFilter">Action Type:</label>
+                <select id="eventFilter" [(ngModel)]="selectedEventType" (ngModelChange)="onFilterChange()">
+                    <option value="ALL">All Actions</option>
+                    <option value="STOCK_RECEIVED">Stock Received</option>
+                    <option value="PRODUCT_ADDED">Product Added</option>
+                    <option value="STOCK_TRANSFERRED">Stock Transferred to LCC</option>
+                    <option value="PRODUCT_UPDATED">Product Updated</option>
+                    <option value="PRODUCT_DELETED">Product Deleted</option>
+                    <option value="LCC_TRANSFER_DELETED">LCC Transfer Removed</option>
+                </select>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="filter-group">
+                <label for="dateFilter">Date:</label>
+                <input id="dateFilter" type="date" [(ngModel)]="selectedDate" (ngModelChange)="onFilterChange()" />
+            </div>
+
+            <!-- Sort Order -->
+            <div class="filter-group">
+                <label for="sortOrder">Sort:</label>
+                <select id="sortOrder" [(ngModel)]="sortOrder" (ngModelChange)="onFilterChange()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                </select>
+            </div>
+
+            <!-- Clear Filters -->
+            <button *ngIf="searchText || selectedEventType !== 'ALL' || selectedDate" type="button"
+                class="clear-filters-btn" (click)="clearFilters()" title="Clear all active filters">
+                ✕ Reset Filters
+            </button>
+
+        </div>
+    </section>
+
+    <!-- Reports Table Section -->
+    <section class="table-container-card">
+
+        <div class="table-header-meta">
+            <div class="meta-left">
+                <h3>Line-by-Line Transaction Log</h3>
+                <span class="meta-count">
+                    Showing <strong>{{ paginatedRecords.length }}</strong> of <strong>{{ filteredRecords.length
+                        }}</strong> records
+                </span>
+            </div>
+
+            <div class="meta-right">
+                <label for="pageSizeSelect">Show rows:</label>
+                <select id="pageSizeSelect" [(ngModel)]="pageSize" (ngModelChange)="currentPage = 1">
+                    <option *ngFor="let size of pageSizes" [value]="size">{{ size }} rows</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- The Responsive Data Table -->
+        <div class="table-responsive">
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">Record ID</th>
+                        <th class="col-datetime">Date &amp; Time</th>
+                        <th class="col-product-id">Product ID</th>
+                        <th class="col-product-name">Product Name</th>
+                        <th class="col-event">Action / Event</th>
+                        <th class="col-qty">Quantity Change</th>
+                        <th class="col-balance">Stock Balance</th>
+                        <th class="col-location">Location</th>
+                        <th class="col-updated-by">Updated By</th>
+                        <th class="col-remarks">Remarks</th>
+                        <th class="col-action">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let r of paginatedRecords" class="report-row">
+
+                        <!-- Record ID -->
+                        <td class="col-id">
+                            <span class="record-id-code">{{ r.id }}</span>
+                        </td>
+
+                        <!-- Date & Time -->
+                        <td class="col-datetime">
+                            <div class="date-time-cell">
+                                <span class="cell-date">{{ r.date }}</span>
+                                <span class="cell-time">{{ r.time }}</span>
+                            </div>
+                        </td>
+
+                        <!-- Product ID Badge -->
+                        <td class="col-product-id">
+                            <span class="product-id-tag">{{ r.productId }}</span>
+                        </td>
+
+                        <!-- Product Name -->
+                        <td class="col-product-name">
+                            <strong class="product-name-text">{{ r.productName }}</strong>
+                        </td>
+
+                        <!-- Event / Action Badge -->
+                        <td class="col-event">
+                            <span class="event-badge" [ngClass]="getBadgeClass(r.eventType)">
+                                <span class="badge-dot"></span>
+                                {{ r.eventTitle }}
+                            </span>
+                        </td>
+
+                        <!-- Quantity Change -->
+                        <td class="col-qty">
+                            <span class="qty-tag" [class.qty-positive]="r.quantityChange > 0"
+                                [class.qty-negative]="r.quantityChange < 0"
+                                [class.qty-neutral]="r.quantityChange === 0">
+                                {{ r.quantityChange > 0 ? '+' + r.quantityChange : r.quantityChange }} PCS
+                            </span>
+                        </td>
+
+                        <!-- Stock Balance -->
+                        <td class="col-balance">
+                            <div class="balance-cell">
+                                <span class="prev-stock">Prev: {{ r.previousStock }}</span>
+                                <span class="arrow-sep">➔</span>
+                                <span class="new-stock"><strong>{{ r.newStock }} PCS</strong></span>
+                            </div>
+                        </td>
+
+                        <!-- Location -->
+                        <td class="col-location">
+                            <span class="location-badge">📍 {{ r.location }}</span>
+                        </td>
+
+                        <!-- Updated By (Whom) -->
+                        <td class="col-updated-by">
+                            <span class="updated-by-badge">
+                                <span class="user-avatar-tiny">{{ r.updatedBy ? r.updatedBy.charAt(0).toUpperCase() :
+                                    'U' }}</span>
+                                <span class="user-name-text">{{ r.updatedBy }}</span>
+                            </span>
+                        </td>
+
+                        <!-- Remarks -->
+                        <td class="col-remarks">
+                            <span class="remarks-text" [title]="r.remarks">{{ r.remarks || '—' }}</span>
+                        </td>
+
+                        <!-- Action -->
+                        <td class="col-action">
+                            <button type="button" class="btn-delete-record" (click)="deleteSingleRecord(r)"
+                                title="Delete this record">
+                                🗑
+                            </button>
+                        </td>
+
+                    </tr>
+
+                    <!-- Empty State -->
+                    <tr *ngIf="paginatedRecords.length === 0">
+                        <td colspan="11" class="empty-table-cell">
+                            <div class="empty-state-content">
+                                <div class="empty-state-icon">🔍</div>
+                                <h4>No Report Records Found</h4>
+                                <p>No transaction records match your search or filter criteria.</p>
+                                <button *ngIf="searchText || selectedEventType !== 'ALL' || selectedDate" type="button"
+                                    class="btn-reset-empty" (click)="clearFilters()">
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Pagination -->
+        <div class="table-pagination" *ngIf="totalPages > 1">
+            <button type="button" class="page-btn nav-btn" [disabled]="currentPage === 1"
+                (click)="setPage(currentPage - 1)">
+                ← Previous
+            </button>
+
+            <div class="page-numbers">
+                <span class="page-indicator">
+                    Page <strong>{{ currentPage }}</strong> of <strong>{{ totalPages }}</strong>
+                </span>
+            </div>
+
+            <button type="button" class="page-btn nav-btn" [disabled]="currentPage === totalPages"
+                (click)="setPage(currentPage + 1)">
+                Next →
+            </button>
+        </div>
+
+    </section>
+
+    <!-- ==================== MANUAL REPORT ENTRY MODAL ==================== -->
+    <div class="modal-overlay" *ngIf="showManualEntryModal" (click)="closeManualEntryModal()">
+        <div class="modal-card manual-entry-modal" (click)="$event.stopPropagation()">
+
+            <div class="modal-header">
+                <div class="modal-header-icon">📝</div>
+                <div>
+                    <h2>Record Report Entry</h2>
+                    <p>Add a line-by-line audit record directly into the reports file</p>
+                </div>
+                <button type="button" class="modal-close-btn" (click)="closeManualEntryModal()">✕</button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-error-banner" *ngIf="manualFormError">
+                    <span>⚠️ {{ manualFormError }}</span>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="manualPId">Product ID *</label>
+                        <input id="manualPId" type="text" placeholder="e.g. SA_102, TS_103"
+                            [(ngModel)]="manualForm.productId" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualPName">Product Name *</label>
+                        <input id="manualPName" type="text" placeholder="e.g. Saree, T-Shirt"
+                            [(ngModel)]="manualForm.productName" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualEvent">Action Type *</label>
+                        <select id="manualEvent" [(ngModel)]="manualForm.eventType">
+                            <option value="STOCK_RECEIVED">Stock Received</option>
+                            <option value="PRODUCT_ADDED">Product Added</option>
+                            <option value="STOCK_TRANSFERRED">Stock Transferred to LCC</option>
+                            <option value="PRODUCT_UPDATED">Product Updated</option>
+                            <option value="PRODUCT_DELETED">Product Deleted</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualQty">Quantity (PCS) *</label>
+                        <input id="manualQty" type="number" min="1" [(ngModel)]="manualForm.quantity" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualUser">Updated By (Whom) *</label>
+                        <input id="manualUser" type="text" placeholder="Enter name (e.g. Abi)"
+                            [(ngModel)]="manualForm.updatedBy" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualDate">Date *</label>
+                        <input id="manualDate" type="date" [(ngModel)]="manualForm.date" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manualLoc">Location</label>
+                        <input id="manualLoc" type="text" placeholder="e.g. Vadalur"
+                            [(ngModel)]="manualForm.location" />
+                    </div>
+
+                    <div class="form-group full-span">
+                        <label for="manualRemarks">Remarks / Notes</label>
+                        <input id="manualRemarks" type="text"
+                            placeholder="e.g. Verified by team lead, special replenishment"
+                            [(ngModel)]="manualForm.remarks" />
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" (click)="closeManualEntryModal()">Cancel</button>
+                <button type="button" class="btn-submit" (click)="saveManualEntry()">Save Record</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== IN-APP MODAL CONFIRM / NOTIFICATION DIALOG ==================== -->
+    <div class="modal-overlay app-dialog-overlay" *ngIf="modalDialog.show">
+        <div class="modal-card app-dialog-modal" [ngClass]="'dialog-' + modalDialog.type">
+            <div class="dialog-icon-wrapper">
+                <span *ngIf="modalDialog.type === 'success'" class="dialog-icon">✓</span>
+                <span *ngIf="modalDialog.type === 'warning'" class="dialog-icon">⚠️</span>
+                <span *ngIf="modalDialog.type === 'error'" class="dialog-icon">✕</span>
+                <span *ngIf="modalDialog.type === 'confirm'" class="dialog-icon">❓</span>
+            </div>
+
+            <h3 class="dialog-title">{{ modalDialog.title }}</h3>
+            <p class="dialog-message">{{ modalDialog.message }}</p>
+
+            <div class="dialog-details-card" *ngIf="modalDialog.details && modalDialog.details.length > 0">
+                <div class="dialog-detail-row" *ngFor="let item of modalDialog.details">
+                    <span class="detail-label">{{ item.label }}:</span>
+                    <span class="detail-value">{{ item.value }}</span>
+                </div>
+            </div>
+
+            <div class="dialog-actions">
+                <button *ngIf="modalDialog.cancelText" type="button" class="dialog-cancel-btn"
+                    (click)="modalDialog.onCancel ? modalDialog.onCancel() : modalDialog.show = false">
+                    {{ modalDialog.cancelText }}
+                </button>
+
+                <button type="button" class="dialog-confirm-btn" [ngClass]="'btn-' + modalDialog.type"
+                    (click)="modalDialog.onConfirm ? modalDialog.onConfirm() : modalDialog.show = false">
+                    {{ modalDialog.confirmText || 'OK' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

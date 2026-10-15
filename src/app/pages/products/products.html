@@ -7,13 +7,24 @@
       <p>Manage warehouse products and available stock.</p>
     </div>
 
-    <button
-      type="button"
-      class="add-product-btn"
-      (click)="openAddForm()"
-    >
-      + Add Product
-    </button>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="reset-data-btn"
+        (click)="resetAllData()"
+        title="Reset and clear all entered data"
+      >
+        ↺ Reset Data
+      </button>
+
+      <button
+        type="button"
+        class="add-product-btn"
+        (click)="openAddForm()"
+      >
+        + Add Product
+      </button>
+    </div>
   </header>
 
   <!-- Stock Register -->
@@ -21,16 +32,16 @@
 
     <!-- Stock Summary -->
     <div class="stock-summary">
-
+      <div class="summary-card">
+        <span class="summary-label">Total Pieces</span>
+        <h2>{{ totalPieces }}</h2>
+      </div>
       <div class="summary-card">
         <span class="summary-label">Total Products</span>
         <h2>{{ products.length }}</h2>
       </div>
 
-      <div class="summary-card">
-        <span class="summary-label">Total Pieces</span>
-        <h2>{{ totalPieces }}</h2>
-      </div>
+      
 
       
 
@@ -85,14 +96,24 @@
 
           <p>
             <strong>Available Stock:</strong>
-            <span class="stock-quantity">{{ product.quantity }} PCS</span>
+            <span class="stock-quantity" [class.stock-danger]="product.quantity < 20">{{ product.quantity }} PCS</span>
           </p>
+
+          <div class="product-low-stock-alert" *ngIf="product.quantity < 20">
+            <span class="alert-pulse-dot"></span>
+            About to update the product
+          </div>
 
           <p>
             <strong>Received Date:</strong>
             <span>
               {{ product.receivedDate | date:'dd-MM-yyyy' }}
             </span>
+          </p>
+
+          <p *ngIf="product.updatedBy || product.addedBy">
+            <strong>Updated By:</strong>
+            <span class="updated-by-name">{{ product.updatedBy || product.addedBy }}</span>
           </p>
 
           <p>
@@ -108,7 +129,7 @@
           <button
             type="button"
             class="receive-stock-btn"
-            (click)="addReceivedStock(product)"
+            (click)="openReceiveStock(product)"
           >
             + Receive Stock
           </button>
@@ -427,6 +448,7 @@
               id="productName"
               name="name"
               [(ngModel)]="productForm.name"
+              (ngModelChange)="onProductNameChange($event)"
               required
             >
               <option value="" disabled>
@@ -523,6 +545,28 @@
 
         </div>
 
+        <!-- Added By / Updated By (Whom) -->
+        <div class="form-field">
+
+          <label for="productAddedBy">
+            {{ editingId !== null ? 'Updated By (Whom)' : 'Your Name' }} <span>*</span>
+          </label>
+
+          <input
+            id="productAddedBy"
+            type="text"
+            name="productAddedBy"
+            [(ngModel)]="productForm.updatedBy"
+            required
+            [placeholder]="editingId !== null ? 'Enter name of person updating this product' : 'Enter name of person adding this product'"
+          />
+
+          <small class="field-help">
+            {{ editingId !== null ? 'Name of staff or person updating this product.' : 'Name of staff or person adding/registering this product.' }}
+          </small>
+
+        </div>
+
         <!-- Form Actions -->
         <div class="form-actions">
 
@@ -552,6 +596,269 @@
 
     </section>
 
+  </div>
+
+  <!-- Receive Stock Modal -->
+  <div
+    class="modal-overlay receive-stock-overlay"
+    *ngIf="showReceiveStockModal"
+    (click)="closeReceiveStock()"
+  >
+    <section
+      class="product-modal receive-stock-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="receiveStockTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div>
+          <h2 id="receiveStockTitle">Receive Stock</h2>
+          <p>Add incoming stock and record who received and updated it.</p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close-btn"
+          aria-label="Close receive stock form"
+          (click)="closeReceiveStock()"
+        >
+          &times;
+        </button>
+      </div>
+
+      <!-- Current Product Details Banner -->
+      <div class="receive-product-banner" *ngIf="selectedReceiveProduct">
+        <div class="receive-banner-item">
+          <span class="banner-label">Product ID</span>
+          <strong class="banner-value">{{ selectedReceiveProduct.productId }}</strong>
+        </div>
+        <div class="receive-banner-item">
+          <span class="banner-label">Product Name</span>
+          <strong class="banner-value">{{ selectedReceiveProduct.name }}</strong>
+        </div>
+        <div class="receive-banner-item">
+          <span class="banner-label">Location</span>
+          <strong class="banner-value">{{ selectedReceiveProduct.location || 'Not assigned' }}</strong>
+        </div>
+        <div class="receive-banner-item">
+          <span class="banner-label">Current Stock</span>
+          <strong class="banner-value stock-highlight">{{ selectedReceiveProduct.quantity }} PCS</strong>
+        </div>
+      </div>
+
+      <!-- Receive Stock Form -->
+      <form
+        class="product-form"
+        #receiveNgForm="ngForm"
+        (ngSubmit)="confirmReceiveStock()"
+      >
+        <!-- Additional Pieces Received -->
+        <div class="form-field">
+          <label for="receivePieces">
+            Additional Pieces Received (PCS) <span>*</span>
+          </label>
+          <input
+            id="receivePieces"
+            type="number"
+            name="additionalPieces"
+            [(ngModel)]="receiveStockForm.quantity"
+            min="1"
+            step="1"
+            required
+            placeholder="Enter additional quantity received (e.g. 10)"
+          />
+        </div>
+
+        <!-- Stock Preview Calculation -->
+        <div
+          class="stock-calc-preview"
+          *ngIf="selectedReceiveProduct && receiveStockForm.quantity && receiveStockForm.quantity > 0"
+        >
+          <span>Current: <strong>{{ selectedReceiveProduct.quantity }} PCS</strong></span>
+          <span class="calc-symbol">+</span>
+          <span>Added: <strong>{{ receiveStockForm.quantity }} PCS</strong></span>
+          <span class="calc-symbol">=</span>
+          <span class="calc-total">New Available Stock: <strong>{{ selectedReceiveProduct.quantity + receiveStockForm.quantity }} PCS</strong></span>
+        </div>
+
+        <!-- Updated By Whom Name -->
+        <div class="form-field">
+          <label for="receiveUpdatedBy">
+            Updated By (Whom) <span>*</span>
+          </label>
+          <input
+            id="receiveUpdatedBy"
+            type="text"
+            name="updatedBy"
+            [(ngModel)]="receiveStockForm.updatedBy"
+            required
+            placeholder="Enter name of person who received / updated the stock"
+          />
+        </div>
+
+        <!-- Received Date -->
+        <div class="form-field">
+          <label for="receiveDate">
+            Received Date <span>*</span>
+          </label>
+          <input
+            id="receiveDate"
+            type="date"
+            name="receiveDate"
+            [(ngModel)]="receiveStockForm.date"
+            required
+          />
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeReceiveStock()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="save-product-btn"
+            [disabled]="
+              receiveNgForm.invalid ||
+              !receiveStockForm.quantity ||
+              receiveStockForm.quantity < 1 ||
+              !receiveStockForm.updatedBy?.trim()
+            "
+          >
+            Confirm & Receive Stock
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Add Product Name Modal (Replaces browser window.prompt) -->
+  <div
+    class="modal-overlay add-name-overlay"
+    *ngIf="showAddNameModal"
+    (click)="closeAddNameModal()"
+  >
+    <section
+      class="product-modal add-name-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="addNameTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <div>
+          <h2 id="addNameTitle">Add Product Name</h2>
+          <p>Add a new product type to the selection list.</p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close-btn"
+          aria-label="Close"
+          (click)="closeAddNameModal()"
+        >
+          &times;
+        </button>
+      </div>
+
+      <form (ngSubmit)="confirmAddName()">
+        <div class="form-field">
+          <label for="newProductName">Product Name <span>*</span></label>
+          <input
+            id="newProductName"
+            type="text"
+            name="newProductName"
+            [(ngModel)]="newProductNameInput"
+            placeholder="e.g. Jeans, Dhoti, Silk Saree"
+            required
+            autofocus
+          />
+          <div class="modal-field-error" *ngIf="addNameError">
+            <span>⚠️ {{ addNameError }}</span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeAddNameModal()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="save-product-btn"
+            [disabled]="!newProductNameInput.trim()"
+          >
+            + Add Name
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Custom In-App Dialog / Notification / Confirm Modal (Replaces browser alert/confirm) -->
+  <div
+    class="modal-overlay app-dialog-overlay"
+    *ngIf="modalDialog.show"
+    (click)="modalDialog.onCancel ? modalDialog.onCancel() : modalDialog.show = false"
+  >
+    <section
+      class="product-modal app-dialog-modal"
+      role="dialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Dialog Icon -->
+      <div class="dialog-icon-wrapper" [ngClass]="modalDialog.type">
+        <span *ngIf="modalDialog.type === 'success'" class="dialog-icon success">&#10003;</span>
+        <span *ngIf="modalDialog.type === 'warning' || modalDialog.type === 'confirm'" class="dialog-icon warning">&#9888;</span>
+        <span *ngIf="modalDialog.type === 'error'" class="dialog-icon error">&#10005;</span>
+      </div>
+
+      <div class="dialog-content">
+        <h3>{{ modalDialog.title }}</h3>
+        <p class="dialog-message" *ngIf="modalDialog.message">{{ modalDialog.message }}</p>
+
+        <!-- Structured Details Card -->
+        <div class="dialog-details-card" *ngIf="modalDialog.details && modalDialog.details.length > 0">
+          <div class="detail-row" *ngFor="let item of modalDialog.details">
+            <span class="detail-label">{{ item.label }}</span>
+            <strong class="detail-value">{{ item.value }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialog Action Buttons -->
+      <div class="dialog-actions">
+        <button
+          type="button"
+          class="cancel-btn"
+          *ngIf="modalDialog.cancelText"
+          (click)="modalDialog.onCancel ? modalDialog.onCancel() : modalDialog.show = false"
+        >
+          {{ modalDialog.cancelText }}
+        </button>
+
+        <button
+          type="button"
+          class="dialog-confirm-btn"
+          [ngClass]="modalDialog.type"
+          (click)="modalDialog.onConfirm ? modalDialog.onConfirm() : modalDialog.show = false"
+        >
+          {{ modalDialog.confirmText || 'OK' }}
+        </button>
+      </div>
+    </section>
   </div>
 
 </div>

@@ -29,6 +29,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   password = '';
   rememberMe = false;
   showPassword = false;
+  errorMessage = '';
 
   images = [
     '/asset/helping-person1.png',
@@ -162,9 +163,10 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   loginUser(): void {
     if (!this.username || !this.password) {
-      alert('Please enter username and password');
+      this.errorMessage = 'Please enter your username and password';
       return;
     }
+    this.errorMessage = '';
     this.router.navigate(['/dashboard']);
   }
 

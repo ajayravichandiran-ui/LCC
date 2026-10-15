@@ -7,13 +7,16 @@
       <p>Manage and track products transferred from warehouse to LCC inventory.</p>
     </div>
 
-    <!-- <button
-      type="button"
-      class="switch-stock-btn"
-      (click)="goBackToProducts()"
-    >
-      + Switch Stock in Products
-    </button> -->
+    <div class="header-actions">
+      <button
+        type="button"
+        class="reset-data-btn"
+        (click)="resetAllData()"
+        title="Reset and clear all entered data"
+      >
+        ↺ Reset Data
+      </button>
+    </div>
   </header>
 
   <!-- LCC Register -->
@@ -70,8 +73,13 @@
 
           <p>
             <strong>LCC Stock:</strong>
-            <span class="stock-value-highlight">{{ item.quantity }} PCS</span>
+            <span class="stock-value-highlight" [class.stock-danger]="item.quantity < 20">{{ item.quantity }} PCS</span>
           </p>
+
+          <div class="product-low-stock-alert" *ngIf="item.quantity < 20">
+            <span class="alert-pulse-dot"></span>
+            About to update the product
+          </div>
 
           <p>
             <strong>Transfer Date:</strong>
@@ -94,11 +102,18 @@
         <div class="product-actions">
           <button
             type="button"
+            class="edit-lcc-btn"
+            (click)="openEditModal(item)"
+          >
+            Edit
+          </button>
+          <!-- <button
+            type="button"
             class="remove-record-btn"
             (click)="deleteTransfer(item.id)"
           >
-            Remove Record
-          </button>
+            Split Record
+          </button> -->
         </div>
       </article>
     </div>
@@ -129,5 +144,164 @@
     </ng-template>
 
   </section>
+
+  <!-- Edit LCC Item Modal -->
+  <div
+    class="modal-overlay"
+    *ngIf="showEditModal"
+    (click)="closeEditModal()"
+  >
+    <section
+      class="product-modal edit-lcc-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="editLccTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <div>
+          <h2 id="editLccTitle">Edit LCC Item</h2>
+          <p>Update stock quantity or details for {{ selectedEditItem?.productId }} ({{ selectedEditItem?.name }}).</p>
+        </div>
+        <button
+          type="button"
+          class="modal-close-btn"
+          aria-label="Close edit form"
+          (click)="closeEditModal()"
+        >
+          &times;
+        </button>
+      </div>
+
+      <form class="product-form" (ngSubmit)="confirmSaveEdit()">
+        <div class="form-field">
+          <label>Product</label>
+          <input
+            type="text"
+            [value]="(selectedEditItem?.productId || '') + ' - ' + (selectedEditItem?.name || '')"
+            disabled
+            class="input-disabled"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="editQuantity">LCC Stock (PCS) <span>*</span></label>
+          <input
+            id="editQuantity"
+            type="number"
+            min="1"
+            name="quantity"
+            [(ngModel)]="editForm.quantity"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="editSwitchedBy">Switched / Updated By <span>*</span></label>
+          <input
+            id="editSwitchedBy"
+            type="text"
+            name="switchedBy"
+            [(ngModel)]="editForm.switchedBy"
+            required
+            placeholder="Enter name (e.g., Madhan)"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="editDate">Transfer Date <span>*</span></label>
+          <input
+            id="editDate"
+            type="date"
+            name="date"
+            [(ngModel)]="editForm.date"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="editLocation">Warehouse Location</label>
+          <input
+            id="editLocation"
+            type="text"
+            name="location"
+            [(ngModel)]="editForm.location"
+            placeholder="Enter location"
+          />
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeEditModal()"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="save-btn"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Custom In-App Dialog / Notification / Confirm Modal -->
+  <div
+    class="modal-overlay app-dialog-overlay"
+    *ngIf="modalDialog.show"
+    (click)="modalDialog.onCancel ? modalDialog.onCancel() : modalDialog.show = false"
+  >
+    <section
+      class="product-modal app-dialog-modal"
+      role="dialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Dialog Icon -->
+      <div class="dialog-icon-wrapper" [ngClass]="modalDialog.type">
+        <span *ngIf="modalDialog.type === 'success'" class="dialog-icon success">&#10003;</span>
+        <span *ngIf="modalDialog.type === 'warning' || modalDialog.type === 'confirm'" class="dialog-icon warning">&#9888;</span>
+        <span *ngIf="modalDialog.type === 'error'" class="dialog-icon error">&#10005;</span>
+      </div>
+
+      <div class="dialog-content">
+        <h3>{{ modalDialog.title }}</h3>
+        <p class="dialog-message" *ngIf="modalDialog.message">{{ modalDialog.message }}</p>
+
+        <!-- Structured Details Card -->
+        <div class="dialog-details-card" *ngIf="modalDialog.details && modalDialog.details.length > 0">
+          <div class="detail-row" *ngFor="let item of modalDialog.details">
+            <span class="detail-label">{{ item.label }}</span>
+            <strong class="detail-value">{{ item.value }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialog Action Buttons -->
+      <div class="dialog-actions">
+        <button
+          type="button"
+          class="cancel-btn"
+          *ngIf="modalDialog.cancelText"
+          (click)="modalDialog.onCancel ? modalDialog.onCancel() : modalDialog.show = false"
+        >
+          {{ modalDialog.cancelText }}
+        </button>
+
+        <button
+          type="button"
+          class="dialog-confirm-btn"
+          [ngClass]="modalDialog.type"
+          (click)="modalDialog.onConfirm ? modalDialog.onConfirm() : modalDialog.show = false"
+        >
+          {{ modalDialog.confirmText || 'OK' }}
+        </button>
+      </div>
+    </section>
+  </div>
 
 </div>

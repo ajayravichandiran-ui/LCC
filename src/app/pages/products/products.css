@@ -59,6 +59,36 @@ button {
   line-height: 1.6;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.reset-data-btn {
+  padding: 12px 18px;
+  border: 1.5px solid #fecaca;
+  border-radius: 10px;
+  background: #fff5f5;
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 13.5px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.reset-data-btn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #b91c1c;
+  transform: translateY(-1px);
+}
+
 .add-product-btn {
   flex-shrink: 0;
   padding: 13px 20px;
@@ -1054,4 +1084,285 @@ button {
   .product-modal {
     padding: 16px;
   }
+}
+
+/* ==================== LOW STOCK ALERT (< 20) ==================== */
+
+.stock-quantity.stock-danger {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.product-low-stock-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 11.5px;
+  font-weight: 750;
+  animation: productWarningBlink 1.2s infinite ease-in-out;
+}
+
+.product-low-stock-alert .alert-pulse-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #dc2626;
+  box-shadow: 0 0 6px #dc2626;
+  flex-shrink: 0;
+  animation: dotFlash 1.2s infinite ease-in-out;
+}
+
+@keyframes productWarningBlink {
+  0%, 100% {
+    opacity: 1;
+    background: #fee2e2;
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.25);
+  }
+  50% {
+    opacity: 0.55;
+    background: #fff5f5;
+    box-shadow: none;
+  }
+}
+
+@keyframes dotFlash {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.6);
+    opacity: 0.3;
+  }
+}
+
+/* ==================== RECEIVE STOCK MODAL ==================== */
+
+.receive-stock-modal {
+  width: min(100%, 640px);
+}
+
+.receive-product-banner {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+  margin-bottom: 22px;
+  border: 1.5px solid #fae8a4;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fffdf2 0%, #fff9e6 100%);
+}
+
+.receive-banner-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.banner-label {
+  color: #8c7830;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.banner-value {
+  color: #263442;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.banner-value.stock-highlight {
+  color: #b45309;
+}
+
+.stock-calc-preview {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 11px 16px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 13.5px;
+}
+
+.stock-calc-preview .calc-symbol {
+  font-weight: 700;
+  color: #15803d;
+}
+
+.stock-calc-preview .calc-total {
+  margin-left: auto;
+  font-weight: 700;
+  color: #166534;
+}
+
+.updated-by-name {
+  color: #0f172a;
+  font-weight: 700;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+/* ==================== ADD PRODUCT NAME MODAL ==================== */
+
+.add-name-modal {
+  width: min(100%, 480px);
+}
+
+.modal-field-error {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* ==================== CUSTOM IN-APP DIALOG MODAL ==================== */
+
+.app-dialog-modal {
+  width: min(100%, 480px);
+  padding: 30px 26px;
+  text-align: center;
+  border-radius: 22px;
+}
+
+.dialog-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+}
+
+.dialog-icon-wrapper.success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 2px solid #86efac;
+}
+
+.dialog-icon-wrapper.warning,
+.dialog-icon-wrapper.confirm {
+  background: #fef3c7;
+  color: #b45309;
+  border: 2px solid #fde68a;
+}
+
+.dialog-icon-wrapper.error {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 2px solid #fca5a5;
+}
+
+.dialog-content h3 {
+  margin: 0 0 8px;
+  color: #1e293b;
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.dialog-message {
+  margin: 0 0 16px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dialog-details-card {
+  text-align: left;
+  background: #fffdf2;
+  border: 1.5px solid #f6e8b8;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 16px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dialog-details-card .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+}
+
+.dialog-details-card .detail-label {
+  color: #78716c;
+  font-weight: 500;
+}
+
+.dialog-details-card .detail-value {
+  color: #1c1917;
+  font-weight: 750;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.dialog-confirm-btn {
+  min-height: 44px;
+  padding: 11px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.dialog-confirm-btn.success,
+.dialog-confirm-btn.warning,
+.dialog-confirm-btn.confirm {
+  background: linear-gradient(180deg, #ffd740 0%, #ffca28 100%);
+  color: #263238;
+  border: 1.5px solid #e5b800;
+  box-shadow: 0 3px 10px rgba(255, 202, 40, 0.32);
+}
+
+.dialog-confirm-btn.success:hover,
+.dialog-confirm-btn.warning:hover,
+.dialog-confirm-btn.confirm:hover {
+  background: linear-gradient(180deg, #ffca28 0%, #f2b900 100%);
+  box-shadow: 0 5px 16px rgba(242, 185, 0, 0.42);
+  transform: translateY(-1px);
+}
+
+.dialog-confirm-btn.error {
+  background: #dc2626;
+  color: #ffffff;
+  border: 1.5px solid #b91c1c;
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
+}
+
+.dialog-confirm-btn.error:hover {
+  background: #b91c1c;
+  box-shadow: 0 5px 16px rgba(220, 38, 38, 0.35);
+  transform: translateY(-1px);
 }

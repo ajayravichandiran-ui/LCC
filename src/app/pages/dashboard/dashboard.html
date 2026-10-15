@@ -26,15 +26,18 @@
     <article
       class="stat-card"
       *ngFor="let stat of stats"
-      [ngClass]="stat.color">
+      [ngClass]="[stat.color, stat.isAlert ? 'has-alert' : '']">
 
       <div class="stat-top">
         <span class="stat-title">{{ stat.title }}</span>
-        <span class="stat-icon">{{ stat.icon }}</span>
+        <span class="stat-icon" [class.alert-blinking]="stat.isAlert">{{ stat.icon }}</span>
       </div>
 
       <h2>{{ stat.value }}</h2>
-      <p>{{ stat.description }}</p>
+      <p [class.warning-blink-red]="stat.isAlert">
+        <span *ngIf="stat.isAlert" class="alert-pulse-dot"></span>
+        {{ stat.description }}
+      </p>
     </article>
   </section>
 
@@ -129,17 +132,19 @@
     <div class="panel-header">
       <div>
         <h2>Low Stock Alerts</h2>
-        <p>Products that may need restocking</p>
+        <p>Products that may need restocking (Stock below 20)</p>
       </div>
-      <span class="alert-count">{{ lowStockProducts.length }} items</span>
+      <span class="alert-count" [class.alert-active]="lowStockProducts.length > 0">
+        {{ lowStockProducts.length }} items
+      </span>
     </div>
 
-    <div class="table-wrapper">
+    <div class="table-wrapper" *ngIf="lowStockProducts.length > 0; else noLowStock">
       <table>
         <thead>
           <tr>
             <th>Product</th>
-            <th>Category</th>
+            <th>Location</th>
             <th>Current Stock</th>
             <th>Minimum Stock</th>
             <th>Status</th>
@@ -150,15 +155,25 @@
           <tr *ngFor="let product of lowStockProducts">
             <td class="product-name">{{ product.name }}</td>
             <td>{{ product.category }}</td>
-            <td>{{ product.stock }} units</td>
+            <td><span class="stock-danger">{{ product.stock }} units</span></td>
             <td>{{ product.minimum }} units</td>
             <td>
-              <span class="status-badge">Restock Needed</span>
+              <span class="status-badge alert-blinking">
+                <span class="alert-pulse-dot"></span>
+                About to update the product
+              </span>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <ng-template #noLowStock>
+      <div class="empty-stock-state">
+        <span class="check-icon">✓</span>
+        <p>All stock levels are adequate (all items are 20 or above). No products require updating.</p>
+      </div>
+    </ng-template>
   </section>
 
 </div>

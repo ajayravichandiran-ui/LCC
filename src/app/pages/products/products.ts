@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LccService } from '../../services/lcc.service';
+import { ReportsService } from '../../services/reports.service';
 
 interface Product {
   id: number;
@@ -13,6 +14,20 @@ interface Product {
   sponsorName?: string;
   image?: string;
   location: string;
+  updatedBy?: string;
+  addedBy?: string;
+}
+
+export interface AppModalDialog {
+  show: boolean;
+  type: 'success' | 'warning' | 'error' | 'confirm';
+  title: string;
+  message: string;
+  details?: { label: string; value: string | number }[];
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
 }
 
 @Component({
@@ -46,12 +61,90 @@ export class Products {
   searchText = '';
   showForm = false;
   showTransferForm = false;
+  showReceiveStockModal = false;
+  selectedReceiveProduct: Product | null = null;
+  receiveStockForm = {
+    quantity: null as number | null,
+    updatedBy: '',
+    date: ''
+  };
   editingId: number | null = null;
+
+  // Generic in-app dialog
+  modalDialog: AppModalDialog = {
+    show: false,
+    type: 'success',
+    title: '',
+    message: ''
+  };
+
+  // Add Product Name modal (replaces window.prompt)
+  showAddNameModal = false;
+  newProductNameInput = '';
+  addNameError = '';
+
+  showSuccess(
+    title: string,
+    message: string,
+    details?: { label: string; value: string | number }[]
+  ): void {
+    this.modalDialog = {
+      show: true,
+      type: 'success',
+      title,
+      message,
+      details,
+      confirmText: 'OK',
+      onConfirm: () => {
+        this.modalDialog.show = false;
+      }
+    };
+  }
+
+  showWarning(title: string, message: string): void {
+    this.modalDialog = {
+      show: true,
+      type: 'warning',
+      title,
+      message,
+      confirmText: 'OK',
+      onConfirm: () => {
+        this.modalDialog.show = false;
+      }
+    };
+  }
+
+  showConfirm(
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    confirmText = 'Confirm',
+    type: 'warning' | 'error' = 'warning'
+  ): void {
+    this.modalDialog = {
+      show: true,
+      type,
+      title,
+      message,
+      confirmText,
+      cancelText: 'Cancel',
+      onConfirm: () => {
+        this.modalDialog.show = false;
+        onConfirm();
+      },
+      onCancel: () => {
+        this.modalDialog.show = false;
+      }
+    };
+  }
 
   // Product ID counter
   nextProductId = 102;
 
-  constructor(private lccService: LccService) {
+  constructor(
+    private lccService: LccService,
+    private reportsService: ReportsService
+  ) {
     this.loadProducts();
   }
 
@@ -86,8 +179,55 @@ export class Products {
     }
   }
 
-  generateProductId(): string {
-    return `PR${this.nextProductId}`;
+  resetAllData(): void {
+    this.showConfirm(
+      'Reset All Data?',
+      'Are you sure you want to reset and clear all entered products and transfer data? This action cannot be undone.',
+      () => {
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.removeItem('warehouse_products');
+            localStorage.removeItem('lcc_transferred_items');
+          }
+        } catch (e) {
+          console.error('Failed to clear data', e);
+        }
+        this.products = [];
+        this.nextProductId = 102;
+        this.lccService.clearAll();
+        this.showSuccess('Data Reset Complete', 'All entered products and LCC transfer records have been cleared successfully.');
+      },
+      'Yes, Reset All',
+      'error'
+    );
+  }
+
+  getPrefixFromName(name: string): string {
+    if (!name) {
+      return 'PR';
+    }
+    // Extract letters only to properly handle names like "T-Shirt" -> "TS", "Saree" -> "SA"
+    const lettersOnly = name.replace(/[^a-zA-Z]/g, '');
+    if (lettersOnly.length >= 2) {
+      return lettersOnly.slice(0, 2).toUpperCase();
+    }
+    const clean = name.trim().toUpperCase();
+    return clean ? (clean + 'XX').slice(0, 2) : 'PR';
+  }
+
+  generateProductId(name: string = ''): string {
+    const prefix = this.getPrefixFromName(name);
+    return `${prefix}_${this.nextProductId}`;
+  }
+
+  onProductNameChange(name: string): void {
+    if (!name) {
+      return;
+    }
+    const prefix = this.getPrefixFromName(name);
+    const numMatch = this.productForm.productId?.match(/\d+/);
+    const num = numMatch ? numMatch[0] : String(this.nextProductId);
+    this.productForm.productId = `${prefix}_${num}`;
   }
 
   // ==================== TRANSFER FORM ====================
@@ -150,12 +290,12 @@ export class Products {
     const switchedBy = this.transferForm.switchedBy.trim();
 
     if (!product) {
-      window.alert('Please select a product.');
+      this.showWarning('Select Product', 'Please select a product to transfer.');
       return;
     }
 
     if (!this.transferForm.date || !switchedBy || !this.transferForm.quantity) {
-      window.alert('Please complete all required fields.');
+      this.showWarning('Required Fields', 'Please complete all required fields.');
       return;
     }
 
@@ -164,9 +304,7 @@ export class Products {
       quantity < 1 ||
       quantity > product.quantity
     ) {
-      window.alert(
-        'Enter a valid quantity within available stock.'
-      );
+      this.showWarning('Invalid Quantity', 'Enter a valid quantity within available warehouse stock.');
       return;
     }
 
@@ -188,11 +326,33 @@ export class Products {
       location: product.location || 'Not assigned'
     });
 
-    window.alert(
-      `${quantity} PCS of ${product.productId ? product.productId + ' (' + product.name + ')' : product.name} transferred to LCC successfully.`
-    );
+    // Record every transfer in Reports line-by-line
+    this.reportsService.recordEntry({
+      productId: product.productId || '',
+      productName: product.name,
+      eventType: 'STOCK_TRANSFERRED',
+      eventTitle: 'Stock Transferred to LCC',
+      quantityChange: -quantity,
+      previousStock: product.quantity,
+      newStock: product.quantity - quantity,
+      location: product.location || 'Not assigned',
+      updatedBy: switchedBy,
+      remarks: `Transferred to LCC inventory`,
+      date: this.transferForm.date
+    });
 
     this.closeTransferForm();
+
+    this.showSuccess(
+      'Transferred to LCC Successfully!',
+      'Product stock has been transferred from warehouse to LCC inventory.',
+      [
+        { label: 'Product', value: `${product.productId ? product.productId + ' (' + product.name + ')' : product.name}` },
+        { label: 'Quantity Transferred', value: `${quantity} PCS` },
+        { label: 'Remaining Warehouse Stock', value: `${product.quantity - quantity} PCS` },
+        { label: 'Switched By', value: switchedBy }
+      ]
+    );
   }
 
   // ==================== DATE ====================
@@ -211,42 +371,58 @@ export class Products {
   emptyProduct(): Product {
     return {
       id: 0,
-      productId: this.generateProductId(),
+      productId: '',
       name: '',
       quantity: 1,
       receivedDate: this.getTodayDate(),
       sponsorName: '',
       image: '',
-      location: ''
+      location: '',
+      updatedBy: '',
+      addedBy: ''
     };
   }
 
   productForm: Product = this.emptyProduct();
 
-  // ==================== ADD PRODUCT NAME ====================
+  // ==================== ADD PRODUCT NAME MODAL ====================
 
-  addNewProductName(): void {
-    const enteredName = window.prompt(
-      'Enter the new product name:'
-    );
+  openAddNameModal(): void {
+    this.newProductNameInput = '';
+    this.addNameError = '';
+    this.showAddNameModal = true;
+  }
 
-    if (!enteredName?.trim()) {
+  closeAddNameModal(): void {
+    this.showAddNameModal = false;
+    this.newProductNameInput = '';
+    this.addNameError = '';
+  }
+
+  confirmAddName(): void {
+    const name = this.newProductNameInput.trim();
+    if (!name) {
+      this.addNameError = 'Please enter a product name.';
       return;
     }
-
-    const name = enteredName.trim();
 
     const alreadyExists = this.productNames.some(
       item => item.toLowerCase() === name.toLowerCase()
     );
 
     if (alreadyExists) {
-      window.alert('This product name already exists.');
+      this.addNameError = 'This product name already exists.';
       return;
     }
 
     this.productNames = [...this.productNames, name];
     this.productForm.name = name;
+    this.onProductNameChange(name);
+    this.closeAddNameModal();
+  }
+
+  addNewProductName(): void {
+    this.openAddNameModal();
   }
 
   // ==================== SEARCH PRODUCTS ====================
@@ -300,21 +476,21 @@ export class Products {
     const name = this.productForm.name.trim();
     const location = this.productForm.location;
     const quantity = Number(this.productForm.quantity);
+    const updatedBy = (this.productForm.updatedBy || this.productForm.addedBy || '').trim();
 
     if (
       !productId ||
       !name ||
       !location ||
-      !this.productForm.receivedDate
+      !this.productForm.receivedDate ||
+      !updatedBy
     ) {
-      window.alert('Please fill in all required fields.');
+      this.showWarning('Missing Fields', 'Please fill in all required fields, including who added this product.');
       return;
     }
 
     if (!Number.isSafeInteger(quantity) || quantity < 1) {
-      window.alert(
-        'Quantity must be a positive whole number.'
-      );
+      this.showWarning('Invalid Quantity', 'Quantity must be a positive whole number.');
       return;
     }
 
@@ -326,9 +502,7 @@ export class Products {
     );
 
     if (isDuplicate) {
-      window.alert(
-        'This Product ID already exists. Please use a unique ID.'
-      );
+      this.showWarning('Duplicate ID', 'This Product ID already exists. Please use a unique ID.');
       return;
     }
 
@@ -341,6 +515,11 @@ export class Products {
       this.productNames = [...this.productNames, name];
     }
 
+    const isNew = this.editingId === null;
+    const oldProduct = !isNew ? this.products.find(existing => existing.id === this.editingId) : undefined;
+    const prevStock = oldProduct ? oldProduct.quantity : 0;
+    const addedBy = isNew ? updatedBy : (oldProduct?.addedBy || updatedBy);
+
     const product: Product = {
       id: this.editingId ?? Date.now(),
       productId,
@@ -349,7 +528,9 @@ export class Products {
       receivedDate: this.productForm.receivedDate,
       sponsorName: this.productForm.sponsorName || '',
       image: this.productForm.image || '',
-      location
+      location,
+      updatedBy,
+      addedBy
     };
 
     if (this.editingId !== null) {
@@ -362,76 +543,168 @@ export class Products {
     } else {
       // Add new product
       this.products = [...this.products, product];
-      this.nextProductId++;
+      const enteredNum = parseInt(productId.replace(/\D/g, ''), 10);
+      if (!isNaN(enteredNum) && enteredNum >= this.nextProductId) {
+        this.nextProductId = enteredNum + 1;
+      } else {
+        this.nextProductId++;
+      }
     }
 
     this.saveProducts();
+
+    // Record every product entry in Reports line-by-line
+    this.reportsService.recordEntry({
+      productId: product.productId,
+      productName: product.name,
+      eventType: isNew ? 'PRODUCT_ADDED' : 'PRODUCT_UPDATED',
+      eventTitle: isNew ? 'Product Added' : 'Product Updated',
+      quantityChange: isNew ? product.quantity : (product.quantity - prevStock),
+      previousStock: prevStock,
+      newStock: product.quantity,
+      location: product.location,
+      updatedBy: updatedBy,
+      remarks: isNew
+        ? (product.sponsorName ? `Sponsor: ${product.sponsorName} • Added by ${updatedBy}` : `Added by ${updatedBy}`)
+        : `Updated by ${updatedBy}`,
+      date: product.receivedDate
+    });
+
     this.closeForm();
+
+    this.showSuccess(
+      isNew ? 'Product Added Successfully!' : 'Product Updated Successfully!',
+      isNew
+        ? 'New product has been added to warehouse inventory.'
+        : 'Product details have been updated.',
+      [
+        { label: 'Product ID', value: product.productId },
+        { label: 'Product Name', value: product.name },
+        { label: 'Available Stock', value: `${product.quantity} PCS` },
+        { label: 'Location', value: product.location },
+        { label: isNew ? 'Added by' : 'Updated by', value: updatedBy }
+      ]
+    );
   }
 
   // ==================== RECEIVE STOCK ====================
 
-  addReceivedStock(product: Product): void {
-    const input = window.prompt(
-      `Product ID: ${product.productId}\n` +
-      `Product: ${product.name}\n` +
-      `Location: ${product.location}\n` +
-      `Current stock: ${product.quantity} PCS\n` +
-      'Enter additional pieces received:'
-    );
+  // ==================== RECEIVE STOCK ====================
 
-    if (input === null || !input.trim()) {
+  openReceiveStock(product: Product): void {
+    this.selectedReceiveProduct = product;
+    this.receiveStockForm = {
+      quantity: null,
+      updatedBy: product.updatedBy || '',
+      date: this.getTodayDate()
+    };
+    this.showReceiveStockModal = true;
+  }
+
+  closeReceiveStock(): void {
+    this.showReceiveStockModal = false;
+    this.selectedReceiveProduct = null;
+  }
+
+  confirmReceiveStock(): void {
+    if (!this.selectedReceiveProduct) {
       return;
     }
 
-    const quantity = Number(input);
+    const qty = Number(this.receiveStockForm.quantity);
+    const updatedBy = this.receiveStockForm.updatedBy?.trim() || '';
 
-    if (
-      !Number.isSafeInteger(quantity) ||
-      quantity < 1 ||
-      !Number.isSafeInteger(product.quantity + quantity)
-    ) {
-      window.alert(
-        'Enter a valid positive whole number.'
-      );
+    if (!Number.isSafeInteger(qty) || qty < 1) {
+      this.showWarning('Invalid Quantity', 'Please enter a valid positive quantity.');
       return;
     }
 
-    this.products = this.products.map(existing =>
-      existing.id === product.id
+    if (!updatedBy) {
+      this.showWarning('Updated By Required', 'Please enter who updated / received this stock.');
+      return;
+    }
+
+    const targetId = this.selectedReceiveProduct.id;
+    const previousQty = this.selectedReceiveProduct.quantity;
+    const newQty = previousQty + qty;
+
+    this.products = this.products.map(p =>
+      p.id === targetId
         ? {
-            ...existing,
-            quantity: existing.quantity + quantity
+            ...p,
+            quantity: newQty,
+            updatedBy: updatedBy,
+            receivedDate: this.receiveStockForm.date || p.receivedDate
           }
-        : existing
+        : p
     );
+
     this.saveProducts();
+    const prod = this.selectedReceiveProduct;
+    this.closeReceiveStock();
 
-    const updated = this.products.find(
-      item => item.id === product.id
+    // Record every stock received in Reports line-by-line
+    this.reportsService.recordEntry({
+      productId: prod.productId,
+      productName: prod.name,
+      eventType: 'STOCK_RECEIVED',
+      eventTitle: 'Stock Received',
+      quantityChange: qty,
+      previousStock: previousQty,
+      newStock: newQty,
+      location: prod.location,
+      updatedBy: updatedBy,
+      remarks: `Stock updated (+${qty} PCS)`,
+      date: this.receiveStockForm.date
+    });
+
+    this.showSuccess(
+      'Stock Updated Successfully!',
+      'Warehouse stock has been received and updated.',
+      [
+        { label: 'Product', value: `${prod.productId} (${prod.name})` },
+        { label: 'Added', value: `+${qty} PCS` },
+        { label: 'New Available Stock', value: `${newQty} PCS` },
+        { label: 'Updated by', value: updatedBy }
+      ]
     );
+  }
 
-    if (updated) {
-      window.alert(
-        `${updated.productId} - ${updated.name}: ` +
-        `${updated.quantity} PCS available.`
-      );
-    }
+  addReceivedStock(product: Product): void {
+    this.openReceiveStock(product);
   }
 
   // ==================== DELETE PRODUCT ====================
 
   deleteProduct(id: number): void {
-    if (
-      window.confirm(
-        'Are you sure you want to delete this product?'
-      )
-    ) {
-      this.products = this.products.filter(
-        product => product.id !== id
-      );
-      this.saveProducts();
-    }
+    const product = this.products.find(p => p.id === id);
+    const name = product ? `${product.productId} (${product.name})` : 'this product';
+    this.showConfirm(
+      'Delete Product?',
+      `Are you sure you want to delete ${name}? This action cannot be undone.`,
+      () => {
+        if (product) {
+          // Record product deletion in Reports line-by-line
+          this.reportsService.recordEntry({
+            productId: product.productId,
+            productName: product.name,
+            eventType: 'PRODUCT_DELETED',
+            eventTitle: 'Product Deleted',
+            quantityChange: -product.quantity,
+            previousStock: product.quantity,
+            newStock: 0,
+            location: product.location,
+            updatedBy: 'Admin',
+            remarks: 'Product removed from warehouse inventory'
+          });
+        }
+        this.products = this.products.filter(p => p.id !== id);
+        this.saveProducts();
+        this.showSuccess('Product Deleted', `${name} was removed from warehouse products.`);
+      },
+      'Delete Product',
+      'error'
+    );
   }
 
   // ==================== CLOSE ADD / EDIT FORM ====================

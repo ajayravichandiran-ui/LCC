@@ -33,6 +33,11 @@ export const routes: Routes = [
         path: 'lcc',
         loadComponent: () =>
           import('./pages/lcc/lcc.component').then(m => m.LccComponent)
+      },
+      {
+        path: 'reports',
+        loadComponent: () =>
+          import('./pages/reports/reports').then(m => m.ReportsComponent)
       }
     ]
   },

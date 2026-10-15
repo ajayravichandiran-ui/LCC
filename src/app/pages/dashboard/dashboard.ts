@@ -8,6 +8,7 @@ export interface StatCard {
   icon: string;
   description: string;
   color: string;
+  isAlert?: boolean;
 }
 
 @Component({
@@ -39,8 +40,9 @@ export class Dashboard implements OnInit {
       title: 'Low Stock Items',
       value: 0,
       icon: '⚠️',
-      description: 'Need attention',
-      color: 'red'
+      description: 'All stocks adequate',
+      color: 'red',
+      isAlert: false
     },
     {
       title: 'Categories',
@@ -61,12 +63,7 @@ export class Dashboard implements OnInit {
     { day: 'Sun', received: 45, distributed: 25 }
   ];
 
-  lowStockProducts = [
-    { name: 'Rice Bag', category: 'Food Supplies', stock: 8, minimum: 20 },
-    { name: 'Cooking Oil', category: 'Food Supplies', stock: 5, minimum: 15 },
-    { name: 'Blanket', category: 'General Supplies', stock: 3, minimum: 10 },
-    { name: 'Drinking Water', category: 'Essentials', stock: 12, minimum: 25 }
-  ];
+  lowStockProducts: any[] = [];
 
   activities = [
     {
@@ -130,9 +127,14 @@ export class Dashboard implements OnInit {
       }
     });
 
-    const lowStockCount = warehouseProducts.filter(
-      p => Number(p.quantity) < 10
-    ).length;
+    const lowWarehouseProducts = warehouseProducts.filter(
+      p => Number(p.quantity) < 20
+    );
+    const lowLccItems = lccItems.filter(
+      item => Number(item.quantity) < 20
+    );
+    const lowStockCount = lowWarehouseProducts.length + lowLccItems.length;
+    const isLowStock = lowStockCount > 0;
 
     this.stats = [
       {
@@ -153,8 +155,9 @@ export class Dashboard implements OnInit {
         title: 'Low Stock Items',
         value: lowStockCount,
         icon: '⚠️',
-        description: lowStockCount > 0 ? 'Warehouse items with stock < 10' : 'All stocks adequate',
-        color: 'red'
+        description: isLowStock ? 'About to update the product' : 'All stocks adequate',
+        color: 'red',
+        isAlert: isLowStock
       },
       {
         title: 'Categories',
@@ -165,19 +168,26 @@ export class Dashboard implements OnInit {
       }
     ];
 
-    // If real warehouse products exist with low stock, show them in low stock alerts table
-    const realLowStock = warehouseProducts
-      .filter(p => Number(p.quantity) <= 20)
-      .map(p => ({
+    // Build low stock list for products with stock below 20
+    const realLowStock: any[] = [];
+    lowWarehouseProducts.forEach(p => {
+      realLowStock.push({
         name: p.productId ? `${p.productId} - ${p.name}` : p.name,
-        category: p.location || 'Warehouse',
-        stock: p.quantity,
+        category: p.location ? `Warehouse (${p.location})` : 'Warehouse',
+        stock: Number(p.quantity),
         minimum: 20
-      }));
+      });
+    });
+    lowLccItems.forEach(item => {
+      realLowStock.push({
+        name: item.productId ? `${item.productId} - ${item.name}` : item.name,
+        category: item.location ? `LCC (${item.location})` : 'LCC',
+        stock: Number(item.quantity),
+        minimum: 20
+      });
+    });
 
-    if (realLowStock.length > 0) {
-      this.lowStockProducts = realLowStock;
-    }
+    this.lowStockProducts = realLowStock;
 
     // Add recent transfer activities if any
     if (lccItems.length > 0) {
