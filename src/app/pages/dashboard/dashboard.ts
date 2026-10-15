@@ -140,7 +140,7 @@ export class Dashboard implements OnInit {
       {
         title: 'Total Stock',
         value: totalStock,
-        icon: '🏭',
+        icon: '🏢',
         description: `${warehouseStock} Products + ${lccStock} LCC units`,
         color: 'blue'
       },
@@ -162,7 +162,7 @@ export class Dashboard implements OnInit {
       {
         title: 'Categories',
         value: categorySet.size || (totalProducts > 0 ? 1 : 0),
-        icon: '📊',
+        icon: '🗃️',
         description: 'Distinct product types',
         color: 'green'
       }
