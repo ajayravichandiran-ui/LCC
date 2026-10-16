@@ -34,7 +34,7 @@
       </div>
 
       <h2>{{ stat.value }}</h2>
-      <p [class.warning-blink-red]="stat.isAlert">
+      <p [class.warning-blink-red]="stat.isAlert" [class.stat-highlight-yellow]="!stat.isAlert">
         <span *ngIf="stat.isAlert" class="alert-pulse-dot"></span>
         {{ stat.description }}
       </p>
@@ -113,7 +113,7 @@
         <span class="panel-icon">🕒</span>
       </div>
 
-      <div class="activity-list">
+      <div class="activity-list" *ngIf="activities.length > 0; else noActivities">
         <div class="activity-item" *ngFor="let activity of activities">
           <div class="activity-icon">{{ activity.icon }}</div>
           <div class="activity-details">
@@ -123,6 +123,12 @@
           </div>
         </div>
       </div>
+
+      <ng-template #noActivities>
+        <div class="empty-activity-state">
+          <p>No recent operations recorded yet. Added or updated products will appear here.</p>
+        </div>
+      </ng-template>
     </article>
 
   </section>

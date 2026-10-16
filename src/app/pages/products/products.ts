@@ -18,6 +18,19 @@ interface Product {
   addedBy?: string;
 }
 
+interface ProductFormData {
+  id: number;
+  productId: string;
+  name: string;
+  quantity: number | null;
+  receivedDate: string;
+  sponsorName?: string;
+  image?: string;
+  location: string;
+  updatedBy?: string;
+  addedBy?: string;
+}
+
 export interface AppModalDialog {
   show: boolean;
   type: 'success' | 'warning' | 'error' | 'confirm';
@@ -155,12 +168,41 @@ export class Products {
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            this.products = parsed;
-            const maxId = parsed.reduce((max: number, p: Product) => {
+            const mapped = parsed.map((p: any, idx: number) => {
+              const safeName = (p.name || 'Product').trim();
+              const prefix = this.getPrefixFromName(safeName);
+              const idNum = p.productId ? parseInt(String(p.productId).replace(/\D/g, ''), 10) : (101 + idx);
+              const safeProductId = p.productId ? String(p.productId).trim() : `${prefix}_${isNaN(idNum) ? 101 + idx : idNum}`;
+              const safeQty = Number(p.quantity);
+
+              return {
+                id: p.id ? Number(p.id) : (Date.now() + idx),
+                productId: safeProductId,
+                name: safeName,
+                quantity: !isNaN(safeQty) && safeQty >= 0 ? safeQty : 0,
+                receivedDate: p.receivedDate || this.getTodayDate(),
+                sponsorName: p.sponsorName || '',
+                image: p.image || '',
+                location: p.location || 'Vadalur',
+                updatedBy: p.updatedBy || p.addedBy || 'Admin',
+                addedBy: p.addedBy || p.updatedBy || 'Admin'
+              };
+            });
+
+            // Consolidate any existing duplicates by product name (e.g. SA_104 and SA_106 Sarees)
+            const consolidated = this.consolidateDuplicateProducts(mapped);
+            // Automatically remove any products where available stock is 0 or less
+            this.products = consolidated.filter(p => (Number(p.quantity) || 0) > 0);
+            if (this.products.length !== parsed.length) {
+              this.saveProducts();
+            }
+
+            const maxId = this.products.reduce((max: number, p: Product) => {
               const num = parseInt(p.productId?.replace(/\D/g, '') || '0', 10);
-              return Math.max(max, num);
+              return Math.max(max, isNaN(num) ? 0 : num);
             }, 101);
             this.nextProductId = maxId + 1;
+            return;
           }
         }
       }
@@ -169,37 +211,70 @@ export class Products {
     }
   }
 
+  private consolidateDuplicateProducts(products: Product[]): Product[] {
+    const grouped = new Map<string, Product[]>();
+
+    for (const p of products) {
+      const nameKey = (p.name || '').trim().toLowerCase();
+      if (!nameKey) continue;
+
+      if (!grouped.has(nameKey)) {
+        grouped.set(nameKey, []);
+      }
+      grouped.get(nameKey)!.push(p);
+    }
+
+    const consolidated: Product[] = [];
+
+    for (const [nameKey, list] of grouped.entries()) {
+      if (list.length === 1) {
+        consolidated.push(list[0]);
+      } else {
+        // Multiple entries for same product name exist (e.g. SA_104 with 90 and SA_106 with 88)
+        // Sort to determine earliest/primary record
+        list.sort((a, b) => {
+          const numA = parseInt(a.productId?.replace(/\D/g, '') || String(a.id || 0), 10);
+          const numB = parseInt(b.productId?.replace(/\D/g, '') || String(b.id || 0), 10);
+          return (isNaN(numA) ? 0 : numA) - (isNaN(numB) ? 0 : numB);
+        });
+
+        const earliest = list[0];
+        const totalQty = list.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+
+        // Find latest update for date and updatedBy
+        const sortedByDate = [...list].sort((a, b) => {
+          const timeA = new Date(a.receivedDate || 0).getTime() || a.id || 0;
+          const timeB = new Date(b.receivedDate || 0).getTime() || b.id || 0;
+          return timeB - timeA;
+        });
+        const latest = sortedByDate[0];
+
+        consolidated.push({
+          ...earliest,
+          name: latest.name || earliest.name,
+          quantity: totalQty,
+          receivedDate: latest.receivedDate || earliest.receivedDate,
+          updatedBy: latest.updatedBy || earliest.updatedBy,
+          location: latest.location || earliest.location,
+          sponsorName: latest.sponsorName || earliest.sponsorName || '',
+          image: latest.image || earliest.image || ''
+        });
+      }
+    }
+
+    return consolidated;
+  }
+
   private saveProducts(): void {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
+        // Exclude products with 0 or negative available stock
+        this.products = this.products.filter(p => (Number(p.quantity) || 0) > 0);
         localStorage.setItem('warehouse_products', JSON.stringify(this.products));
       }
     } catch (e) {
       console.error('Failed to save products to localStorage', e);
     }
-  }
-
-  resetAllData(): void {
-    this.showConfirm(
-      'Reset All Data?',
-      'Are you sure you want to reset and clear all entered products and transfer data? This action cannot be undone.',
-      () => {
-        try {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.removeItem('warehouse_products');
-            localStorage.removeItem('lcc_transferred_items');
-          }
-        } catch (e) {
-          console.error('Failed to clear data', e);
-        }
-        this.products = [];
-        this.nextProductId = 102;
-        this.lccService.clearAll();
-        this.showSuccess('Data Reset Complete', 'All entered products and LCC transfer records have been cleared successfully.');
-      },
-      'Yes, Reset All',
-      'error'
-    );
   }
 
   getPrefixFromName(name: string): string {
@@ -220,14 +295,34 @@ export class Products {
     return `${prefix}_${this.nextProductId}`;
   }
 
+  get existingMatchedProduct(): Product | null {
+    if (this.editingId !== null || !this.productForm.name) {
+      return null;
+    }
+    const clean = this.productForm.name.trim().toLowerCase();
+    if (!clean) return null;
+    return this.products.find(p => (p.name || '').trim().toLowerCase() === clean) || null;
+  }
+
   onProductNameChange(name: string): void {
     if (!name) {
       return;
     }
-    const prefix = this.getPrefixFromName(name);
-    const numMatch = this.productForm.productId?.match(/\d+/);
-    const num = numMatch ? numMatch[0] : String(this.nextProductId);
-    this.productForm.productId = `${prefix}_${num}`;
+    const cleanName = name.trim().toLowerCase();
+    const existing = this.products.find(p => (p.name || '').trim().toLowerCase() === cleanName);
+
+    if (existing && this.editingId === null) {
+      // Product already exists in warehouse -> reuse its established Product ID and Location
+      this.productForm.productId = existing.productId;
+      if (existing.location && !this.productForm.location) {
+        this.productForm.location = existing.location;
+      }
+    } else if (this.editingId === null) {
+      const prefix = this.getPrefixFromName(name);
+      const numMatch = this.productForm.productId?.match(/\d+/);
+      const num = numMatch ? numMatch[0] : String(this.nextProductId);
+      this.productForm.productId = `${prefix}_${num}`;
+    }
   }
 
   // ==================== TRANSFER FORM ====================
@@ -308,12 +403,17 @@ export class Products {
       return;
     }
 
-    // Reduce warehouse stock
-    this.products = this.products.map(item =>
-      item.id === product.id
-        ? { ...item, quantity: item.quantity - quantity }
-        : item
-    );
+    // Reduce warehouse stock, or remove product entirely if stock reaches 0
+    const remainingQty = product.quantity - quantity;
+    if (remainingQty <= 0) {
+      this.products = this.products.filter(item => item.id !== product.id);
+    } else {
+      this.products = this.products.map(item =>
+        item.id === product.id
+          ? { ...item, quantity: remainingQty }
+          : item
+      );
+    }
     this.saveProducts();
 
     // Add transfer record to LCC
@@ -342,6 +442,7 @@ export class Products {
     });
 
     this.closeTransferForm();
+    
 
     this.showSuccess(
       'Transferred to LCC Successfully!',
@@ -368,12 +469,12 @@ export class Products {
 
   // ==================== EMPTY PRODUCT ====================
 
-  emptyProduct(): Product {
+  emptyProduct(): ProductFormData {
     return {
       id: 0,
-      productId: '',
+      productId: this.generateProductId(),
       name: '',
-      quantity: 1,
+      quantity: null,
       receivedDate: this.getTodayDate(),
       sponsorName: '',
       image: '',
@@ -383,7 +484,7 @@ export class Products {
     };
   }
 
-  productForm: Product = this.emptyProduct();
+  productForm: ProductFormData = this.emptyProduct();
 
   // ==================== ADD PRODUCT NAME MODAL ====================
 
@@ -428,23 +529,29 @@ export class Products {
   // ==================== SEARCH PRODUCTS ====================
 
   get filteredProducts(): Product[] {
+    const activeProducts = this.products.filter(p => (Number(p.quantity) || 0) > 0);
     const search = this.searchText.trim().toLowerCase();
+    if (!search) {
+      return activeProducts;
+    }
 
-    return this.products.filter(product =>
-      product.productId.toLowerCase().includes(search) ||
-      product.name.toLowerCase().includes(search) ||
-      (product.sponsorName ? product.sponsorName.toLowerCase().includes(search) : false) ||
-      product.location.toLowerCase().includes(search)
+    return activeProducts.filter(product =>
+      (product.productId || '').toLowerCase().includes(search) ||
+      (product.name || '').toLowerCase().includes(search) ||
+      (product.sponsorName || '').toLowerCase().includes(search) ||
+      (product.location || '').toLowerCase().includes(search)
     );
   }
 
   // ==================== TOTAL STOCK ====================
 
   get totalPieces(): number {
-    return this.products.reduce(
-      (total, product) => total + product.quantity,
-      0
-    );
+    return this.products
+      .filter(p => (Number(p.quantity) || 0) > 0)
+      .reduce(
+        (total, product) => total + (Number(product.quantity) || 0),
+        0
+      );
   }
 
   // ==================== OPEN ADD FORM ====================
@@ -462,6 +569,7 @@ export class Products {
 
     this.productForm = {
       ...product,
+      quantity: product.quantity,
       productId: product.productId ||
         (product.id ? String(product.id) : '')
     };
@@ -472,37 +580,46 @@ export class Products {
   // ==================== SAVE PRODUCT ====================
 
   saveProduct(): void {
-    const productId = this.productForm.productId.trim();
-    const name = this.productForm.name.trim();
-    const location = this.productForm.location;
+    const productId = (this.productForm.productId || '').trim();
+    const name = (this.productForm.name || '').trim();
+    const location = (this.productForm.location || '').trim();
     const quantity = Number(this.productForm.quantity);
     const updatedBy = (this.productForm.updatedBy || this.productForm.addedBy || '').trim();
 
+    if (!name) {
+      this.showWarning('Missing Product Name', 'Please select or enter a Product Name.');
+      return;
+    }
+
+    if (!productId) {
+      this.showWarning('Missing Product ID', 'Please enter a Product ID.');
+      return;
+    }
+
     if (
-      !productId ||
-      !name ||
-      !location ||
-      !this.productForm.receivedDate ||
-      !updatedBy
+      this.productForm.quantity === null ||
+      this.productForm.quantity === undefined ||
+      this.productForm.quantity === ('' as any) ||
+      isNaN(quantity) ||
+      !Number.isSafeInteger(quantity) ||
+      quantity < 1
     ) {
-      this.showWarning('Missing Fields', 'Please fill in all required fields, including who added this product.');
+      this.showWarning('Invalid Quantity', 'Total quantity must be a positive whole number (at least 1 PCS).');
       return;
     }
 
-    if (!Number.isSafeInteger(quantity) || quantity < 1) {
-      this.showWarning('Invalid Quantity', 'Quantity must be a positive whole number.');
+    if (!this.productForm.receivedDate) {
+      this.showWarning('Missing Received Date', 'Please select the date the product was received.');
       return;
     }
 
-    // Prevent duplicate Product IDs
-    const isDuplicate = this.products.some(
-      existing =>
-        existing.productId.toLowerCase() === productId.toLowerCase() &&
-        existing.id !== this.editingId
-    );
+    if (!location) {
+      this.showWarning('Missing Location', 'Please select the warehouse storage location.');
+      return;
+    }
 
-    if (isDuplicate) {
-      this.showWarning('Duplicate ID', 'This Product ID already exists. Please use a unique ID.');
+    if (!updatedBy) {
+      this.showWarning('Missing Name', 'Please enter your name in the "Your Name" field.');
       return;
     }
 
@@ -515,13 +632,187 @@ export class Products {
       this.productNames = [...this.productNames, name];
     }
 
-    const isNew = this.editingId === null;
-    const oldProduct = !isNew ? this.products.find(existing => existing.id === this.editingId) : undefined;
-    const prevStock = oldProduct ? oldProduct.quantity : 0;
-    const addedBy = isNew ? updatedBy : (oldProduct?.addedBy || updatedBy);
+    // ==================== CHECK FOR EXISTING PRODUCT (NO REPETITION) ====================
+    if (this.editingId === null) {
+      // Adding a product: Check if product with this name (or productId) already exists
+      const existingProduct = this.products.find(
+        p => (p.name || '').trim().toLowerCase() === name.toLowerCase() ||
+             (p.productId || '').trim().toLowerCase() === productId.toLowerCase()
+      );
 
+      if (existingProduct) {
+        // Product already exists -> merge into existing product (no duplicate card!)
+        const prevStock = existingProduct.quantity;
+        const addedQty = quantity;
+        const newTotalStock = prevStock + addedQty;
+
+        const updatedProduct: Product = {
+          ...existingProduct,
+          name: name, // Updated name / casing
+          quantity: newTotalStock,
+          receivedDate: this.productForm.receivedDate || this.getTodayDate(),
+          updatedBy: updatedBy,
+          location: location || existingProduct.location,
+          sponsorName: this.productForm.sponsorName || existingProduct.sponsorName || '',
+          image: this.productForm.image || existingProduct.image || ''
+        };
+
+        this.products = this.products.map(p =>
+          p.id === existingProduct.id ? updatedProduct : p
+        );
+        this.saveProducts();
+
+        // Record stock addition in Reports line-by-line
+        this.reportsService.recordEntry({
+          productId: existingProduct.productId,
+          productName: existingProduct.name,
+          eventType: 'STOCK_RECEIVED',
+          eventTitle: 'Stock Added to Existing Product',
+          quantityChange: addedQty,
+          previousStock: prevStock,
+          newStock: newTotalStock,
+          location: updatedProduct.location,
+          updatedBy: updatedBy,
+          remarks: `Added +${addedQty} PCS to existing ${existingProduct.name} (Total: ${newTotalStock} PCS)${this.productForm.sponsorName ? ' • Sponsor: ' + this.productForm.sponsorName : ''}`,
+          date: updatedProduct.receivedDate
+        });
+
+        this.closeForm();
+
+        this.showSuccess(
+          'Existing Product Stock Updated!',
+          `"${existingProduct.name}" already exists in inventory. Added +${addedQty} PCS to existing stock without creating a duplicate.`,
+          [
+            { label: 'Product ID', value: existingProduct.productId },
+            { label: 'Product Name', value: existingProduct.name },
+            { label: 'Previous Stock', value: `${prevStock} PCS` },
+            { label: 'Added Quantity', value: `+${addedQty} PCS` },
+            { label: 'Total Available Stock', value: `${newTotalStock} PCS` },
+            { label: 'Received Date', value: updatedProduct.receivedDate },
+            { label: 'Updated By', value: updatedBy },
+            { label: 'Location', value: updatedProduct.location }
+          ]
+        );
+        return;
+      }
+    }
+
+    // ==================== EDITING EXISTING PRODUCT ====================
+    if (this.editingId !== null) {
+      // Check if user changed name or productId to match ANOTHER product
+      const conflictingProduct = this.products.find(
+        existing =>
+          existing.id !== this.editingId &&
+          ((existing.name || '').trim().toLowerCase() === name.toLowerCase() ||
+           (existing.productId || '').trim().toLowerCase() === productId.toLowerCase())
+      );
+
+      if (conflictingProduct) {
+        // Merge this edited product into the target conflicting product
+        const prevStock = conflictingProduct.quantity;
+        const newTotal = prevStock + quantity;
+
+        const merged: Product = {
+          ...conflictingProduct,
+          quantity: newTotal,
+          receivedDate: this.productForm.receivedDate || conflictingProduct.receivedDate,
+          updatedBy: updatedBy,
+          location: location || conflictingProduct.location,
+          sponsorName: this.productForm.sponsorName || conflictingProduct.sponsorName || '',
+          image: this.productForm.image || conflictingProduct.image || ''
+        };
+
+        // Remove edited product and update the target product
+        this.products = this.products
+          .filter(p => p.id !== this.editingId)
+          .map(p => p.id === conflictingProduct.id ? merged : p);
+        this.saveProducts();
+
+        // Record in reports
+        this.reportsService.recordEntry({
+          productId: conflictingProduct.productId,
+          productName: conflictingProduct.name,
+          eventType: 'PRODUCT_UPDATED',
+          eventTitle: 'Product Merged on Edit',
+          quantityChange: quantity,
+          previousStock: prevStock,
+          newStock: newTotal,
+          location: merged.location,
+          updatedBy: updatedBy,
+          remarks: `Merged into existing ${conflictingProduct.name} (+${quantity} PCS)`,
+          date: merged.receivedDate
+        });
+
+        this.closeForm();
+
+        this.showSuccess(
+          'Products Merged Successfully!',
+          `Product was merged into existing "${conflictingProduct.name}" to prevent repetition.`,
+          [
+            { label: 'Product ID', value: conflictingProduct.productId },
+            { label: 'Total Stock', value: `${newTotal} PCS` },
+            { label: 'Updated By', value: updatedBy }
+          ]
+        );
+        return;
+      }
+
+      // Normal edit of existing product
+      const oldProduct = this.products.find(existing => existing.id === this.editingId);
+      const prevStock = oldProduct ? oldProduct.quantity : 0;
+      const addedBy = oldProduct?.addedBy || updatedBy;
+
+      const product: Product = {
+        id: this.editingId,
+        productId,
+        name,
+        quantity,
+        receivedDate: this.productForm.receivedDate,
+        sponsorName: this.productForm.sponsorName || '',
+        image: this.productForm.image || '',
+        location,
+        updatedBy,
+        addedBy
+      };
+
+      this.products = this.products.map(existing =>
+        existing.id === this.editingId ? product : existing
+      );
+      this.saveProducts();
+
+      this.reportsService.recordEntry({
+        productId: product.productId,
+        productName: product.name,
+        eventType: 'PRODUCT_UPDATED',
+        eventTitle: 'Product Updated',
+        quantityChange: product.quantity - prevStock,
+        previousStock: prevStock,
+        newStock: product.quantity,
+        location: product.location,
+        updatedBy: updatedBy,
+        remarks: `Updated by ${updatedBy}`,
+        date: product.receivedDate
+      });
+
+      this.closeForm();
+
+      this.showSuccess(
+        'Product Updated Successfully!',
+        'Product details have been updated.',
+        [
+          { label: 'Product ID', value: product.productId },
+          { label: 'Product Name', value: product.name },
+          { label: 'Available Stock', value: `${product.quantity} PCS` },
+          { label: 'Location', value: product.location },
+          { label: 'Updated By', value: updatedBy }
+        ]
+      );
+      return;
+    }
+
+    // ==================== BRAND NEW PRODUCT ====================
     const product: Product = {
-      id: this.editingId ?? Date.now(),
+      id: Date.now(),
       productId,
       name,
       quantity,
@@ -530,59 +821,45 @@ export class Products {
       image: this.productForm.image || '',
       location,
       updatedBy,
-      addedBy
+      addedBy: updatedBy
     };
 
-    if (this.editingId !== null) {
-      // Update existing product
-      this.products = this.products.map(existing =>
-        existing.id === this.editingId
-          ? product
-          : existing
-      );
+    this.products = [product, ...this.products];
+    const enteredNum = parseInt(productId.replace(/\D/g, ''), 10);
+    if (!isNaN(enteredNum) && enteredNum >= this.nextProductId) {
+      this.nextProductId = enteredNum + 1;
     } else {
-      // Add new product
-      this.products = [...this.products, product];
-      const enteredNum = parseInt(productId.replace(/\D/g, ''), 10);
-      if (!isNaN(enteredNum) && enteredNum >= this.nextProductId) {
-        this.nextProductId = enteredNum + 1;
-      } else {
-        this.nextProductId++;
-      }
+      this.nextProductId++;
     }
 
     this.saveProducts();
 
-    // Record every product entry in Reports line-by-line
+    // Record brand new product entry in Reports line-by-line
     this.reportsService.recordEntry({
       productId: product.productId,
       productName: product.name,
-      eventType: isNew ? 'PRODUCT_ADDED' : 'PRODUCT_UPDATED',
-      eventTitle: isNew ? 'Product Added' : 'Product Updated',
-      quantityChange: isNew ? product.quantity : (product.quantity - prevStock),
-      previousStock: prevStock,
+      eventType: 'PRODUCT_ADDED',
+      eventTitle: 'Product Added',
+      quantityChange: product.quantity,
+      previousStock: 0,
       newStock: product.quantity,
       location: product.location,
       updatedBy: updatedBy,
-      remarks: isNew
-        ? (product.sponsorName ? `Sponsor: ${product.sponsorName} • Added by ${updatedBy}` : `Added by ${updatedBy}`)
-        : `Updated by ${updatedBy}`,
+      remarks: product.sponsorName ? `Sponsor: ${product.sponsorName} • Added by ${updatedBy}` : `Added by ${updatedBy}`,
       date: product.receivedDate
     });
 
     this.closeForm();
 
     this.showSuccess(
-      isNew ? 'Product Added Successfully!' : 'Product Updated Successfully!',
-      isNew
-        ? 'New product has been added to warehouse inventory.'
-        : 'Product details have been updated.',
+      'Product Added Successfully!',
+      'New product has been added to warehouse inventory.',
       [
         { label: 'Product ID', value: product.productId },
         { label: 'Product Name', value: product.name },
         { label: 'Available Stock', value: `${product.quantity} PCS` },
         { label: 'Location', value: product.location },
-        { label: isNew ? 'Added by' : 'Updated by', value: updatedBy }
+        { label: 'Added By', value: updatedBy }
       ]
     );
   }

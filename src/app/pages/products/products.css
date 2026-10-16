@@ -1366,3 +1366,45 @@ button {
   box-shadow: 0 5px 16px rgba(220, 38, 38, 0.35);
   transform: translateY(-1px);
 }
+
+/* ==================== EXISTING PRODUCT NOTICE ==================== */
+
+.existing-product-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 12px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  color: #166534;
+}
+
+.existing-product-notice .notice-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.existing-product-notice .notice-body strong {
+  display: block;
+  font-size: 13px;
+  color: #14532d;
+  margin-bottom: 3px;
+}
+
+.existing-product-notice .notice-body p {
+  margin: 0;
+  font-size: 12px;
+  color: #15803d;
+  line-height: 1.45;
+}
+
+.existing-product-notice .new-stock-preview {
+  display: inline-block;
+  margin-left: 4px;
+  color: #047857;
+  font-weight: 700;
+}

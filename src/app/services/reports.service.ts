@@ -27,6 +27,7 @@ export interface ReportRecord {
 }
 
 const STORAGE_KEY = 'lcc_reports_records';
+const CLEANUP_KEY = 'lcc_reports_history_reset_v1';
 
 @Injectable({
   providedIn: 'root'
@@ -36,17 +37,25 @@ export class ReportsService {
   records$: Observable<ReportRecord[]> = this.recordsSubject.asObservable();
 
   constructor() {
-    this.seedFromExistingDataIfEmpty();
+    // Automatic demo data seeding removed so report history starts completely clean
   }
 
   private loadInitialRecords(): ReportRecord[] {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
+        // One-time cleanup of previous mock/seeded demo report history
+        if (!localStorage.getItem(CLEANUP_KEY)) {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.setItem(CLEANUP_KEY, 'true');
+          return [];
+        }
+
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) {
-            return parsed;
+            // Filter out any legacy dummy/mock seed records
+            return parsed.filter((r: ReportRecord) => !r.id?.startsWith('RPT-INIT-'));
           }
         }
       }
@@ -159,7 +168,14 @@ export class ReportsService {
    * Clear all records
    */
   clearAllRecords(): void {
-    this.saveRecords([]);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch (e) {
+      console.error('Failed to clear reports from localStorage', e);
+    }
+    this.recordsSubject.next([]);
   }
 
   /**
@@ -243,100 +259,5 @@ export class ReportsService {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  }
-
-  /**
-   * Seed existing warehouse products and LCC transfers into reports
-   * if no reports exist yet, so current data entries are already visible
-   */
-  private seedFromExistingDataIfEmpty(): void {
-    if (this.recordsSubject.value.length > 0) {
-      return;
-    }
-
-    try {
-      if (typeof window === 'undefined' || !window.localStorage) {
-        return;
-      }
-
-      const initialRecords: ReportRecord[] = [];
-      const productsData = localStorage.getItem('warehouse_products');
-      if (productsData) {
-        const products = JSON.parse(productsData);
-        if (Array.isArray(products) && products.length > 0) {
-          products.forEach((p: any, idx: number) => {
-            const date = p.receivedDate || this.getFormattedDate();
-            initialRecords.push({
-              id: `RPT-INIT-00${idx + 1}`,
-              date,
-              time: '09:00:00 AM',
-              productId: p.productId || `PR_${100 + idx}`,
-              productName: p.name || 'Product',
-              eventType: 'PRODUCT_ADDED',
-              eventTitle: 'Product Added (Initial Record)',
-              quantityChange: p.quantity || 0,
-              previousStock: 0,
-              newStock: p.quantity || 0,
-              location: p.location || 'Vadalur',
-              updatedBy: p.updatedBy || 'Initial Setup',
-              remarks: p.sponsorName ? `Sponsor: ${p.sponsorName}` : 'Initial warehouse inventory entry',
-              timestamp: Date.now() - (products.length - idx) * 3600000
-            });
-
-            // If updated by is set (like Abi12 in the screenshot), also record stock received entry
-            if (p.updatedBy && p.updatedBy !== 'Initial Setup') {
-              initialRecords.unshift({
-                id: `RPT-INIT-REC-00${idx + 1}`,
-                date,
-                time: '10:15:00 AM',
-                productId: p.productId,
-                productName: p.name,
-                eventType: 'STOCK_RECEIVED',
-                eventTitle: 'Stock Received',
-                quantityChange: 12,
-                previousStock: Math.max(0, (p.quantity || 12) - 12),
-                newStock: p.quantity || 12,
-                location: p.location || 'Vadalur',
-                updatedBy: p.updatedBy,
-                remarks: 'Stock updated and verified',
-                timestamp: Date.now() - (products.length - idx) * 1800000
-              });
-            }
-          });
-        }
-      }
-
-      // Check LCC transferred items
-      const lccData = localStorage.getItem('lcc_transferred_items');
-      if (lccData) {
-        const lccItems = JSON.parse(lccData);
-        if (Array.isArray(lccItems) && lccItems.length > 0) {
-          lccItems.forEach((item: any, idx: number) => {
-            initialRecords.unshift({
-              id: `RPT-INIT-LCC-00${idx + 1}`,
-              date: item.date || this.getFormattedDate(),
-              time: '11:30:00 AM',
-              productId: item.productId || 'N/A',
-              productName: item.name || 'Transferred Item',
-              eventType: 'STOCK_TRANSFERRED',
-              eventTitle: 'Stock Transferred to LCC',
-              quantityChange: -(item.quantity || 0),
-              previousStock: item.quantity ? item.quantity + 10 : 10,
-              newStock: 10,
-              location: item.location || 'LCC Center',
-              updatedBy: item.switchedBy || 'Operator',
-              remarks: `Transferred to LCC inventory`,
-              timestamp: Date.now() - idx * 1200000
-            });
-          });
-        }
-      }
-
-      if (initialRecords.length > 0) {
-        this.saveRecords(initialRecords);
-      }
-    } catch (e) {
-      console.error('Failed to seed initial report records', e);
-    }
   }
 }

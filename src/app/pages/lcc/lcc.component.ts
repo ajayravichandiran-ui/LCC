@@ -253,13 +253,15 @@ export class LccComponent implements OnInit, OnDestroy {
           if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.removeItem('warehouse_products');
             localStorage.removeItem('lcc_transferred_items');
+            localStorage.removeItem('lcc_reports_records');
           }
         } catch (e) {
           console.error('Failed to clear data', e);
         }
         this.items = [];
         this.lccService.clearAll();
-        this.showSuccess('Data Reset Complete', 'All entered products and LCC records have been cleared successfully.');
+        this.reportsService.clearAllRecords();
+        this.showSuccess('Data Reset Complete', 'All entered products, LCC items, and report records have been cleared successfully.');
       },
       'Yes, Reset All',
       'error'

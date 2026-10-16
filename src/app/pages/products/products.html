@@ -10,15 +10,6 @@
     <div class="header-actions">
       <button
         type="button"
-        class="reset-data-btn"
-        (click)="resetAllData()"
-        title="Reset and clear all entered data"
-      >
-        ↺ Reset Data
-      </button>
-
-      <button
-        type="button"
         class="add-product-btn"
         (click)="openAddForm()"
       >
@@ -131,7 +122,7 @@
             class="receive-stock-btn"
             (click)="openReceiveStock(product)"
           >
-            + Receive Stock
+            + Re - Stock
           </button>
 
           <button
@@ -475,6 +466,21 @@
 
         </div>
 
+        <!-- Existing Product Notice (Prevents Duplication) -->
+        <div class="existing-product-notice" *ngIf="editingId === null && existingMatchedProduct">
+          <span class="notice-icon">ℹ️</span>
+          <div class="notice-body">
+            <strong>"{{ existingMatchedProduct.name }}" already exists in Warehouse ({{ existingMatchedProduct.productId }})</strong>
+            <p>
+              Current available stock: <strong>{{ existingMatchedProduct.quantity }} PCS</strong>.
+              Quantity entered will be added to this existing stock.
+              <span *ngIf="productForm.quantity && (+productForm.quantity) > 0" class="new-stock-preview">
+                (New Total: <strong>{{ existingMatchedProduct.quantity + (+productForm.quantity) }} PCS</strong>)
+              </span>
+            </p>
+          </div>
+        </div>
+
         <!-- Quantity -->
         <div class="form-field">
 
@@ -579,14 +585,14 @@
           </button>
 
           <button
-            type="submit"
+            type="button"
             class="save-product-btn"
-            [disabled]="productNgForm.invalid"
+            (click)="saveProduct()"
           >
             {{
               editingId !== null
                 ? 'Update Product'
-                : 'Save Product'
+                : (existingMatchedProduct ? '+ Add to Existing Stock' : 'Save Product')
             }}
           </button>
 

@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { LccService } from '../../services/lcc.service';
+import { ReportsService, ReportRecord } from '../../services/reports.service';
 
 export interface StatCard {
   title: string;
@@ -11,6 +13,13 @@ export interface StatCard {
   isAlert?: boolean;
 }
 
+export interface ActivityItem {
+  title: string;
+  description: string;
+  time: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -18,22 +27,27 @@ export interface StatCard {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class Dashboard implements OnInit {
-  constructor(private lccService: LccService) {}
+export class Dashboard implements OnInit, OnDestroy {
+  private subscriptions: Subscription[] = [];
+
+  constructor(
+    private lccService: LccService,
+    private reportsService: ReportsService
+  ) {}
 
   stats: StatCard[] = [
     {
-      title: 'Total Stock',
+      title: 'Total Product',
       value: 0,
-      icon: '🏭',
+      icon: '🏢',
       description: 'Units available in LCC + Products',
       color: 'blue'
     },
     {
-      title: 'Total Products',
+      title: 'Total Stocks Items',
       value: 0,
       icon: '📦',
-      description: 'Total products (LCC + Products)',
+      description: 'Total stocks (LCC + Products)',
       color: 'yellow'
     },
     {
@@ -47,53 +61,45 @@ export class Dashboard implements OnInit {
     {
       title: 'Categories',
       value: 0,
-      icon: '📊',
+      icon: '🗃️',
       description: 'Product categories',
       color: 'green'
     }
   ];
 
   stockMovement = [
-    { day: 'Mon', received: 70, distributed: 35 },
-    { day: 'Tue', received: 95, distributed: 55 },
-    { day: 'Wed', received: 60, distributed: 45 },
-    { day: 'Thu', received: 120, distributed: 70 },
-    { day: 'Fri', received: 85, distributed: 50 },
-    { day: 'Sat', received: 105, distributed: 65 },
-    { day: 'Sun', received: 45, distributed: 25 }
+    { day: 'Mon', received: 0, distributed: 0 },
+    { day: 'Tue', received: 0, distributed: 0 },
+    { day: 'Wed', received: 0, distributed: 0 },
+    { day: 'Thu', received: 0, distributed: 0 },
+    { day: 'Fri', received: 0, distributed: 0 },
+    { day: 'Sat', received: 0, distributed: 0 },
+    { day: 'Sun', received: 0, distributed: 0 }
   ];
 
   lowStockProducts: any[] = [];
-
-  activities = [
-    {
-      title: 'Stock Received',
-      description: 'New products added to warehouse',
-      time: 'Today',
-      icon: '📥'
-    },
-    {
-      title: 'Product Updated',
-      description: 'Product details were modified',
-      time: 'Today',
-      icon: '✏️'
-    },
-    {
-      title: 'Stock Distributed',
-      description: 'Items dispatched from warehouse',
-      time: 'Yesterday',
-      icon: '🚚'
-    },
-    {
-      title: 'Low Stock Alert',
-      description: 'Some products need restocking',
-      time: 'Yesterday',
-      icon: '⚠️'
-    }
-  ];
+  activities: ActivityItem[] = [];
 
   ngOnInit(): void {
     this.loadStats();
+
+    // Re-calculate stats live whenever LCC inventory updates
+    this.subscriptions.push(
+      this.lccService.items$.subscribe(() => {
+        this.loadStats();
+      })
+    );
+
+    // Re-calculate stats and recent activity live whenever reports records update
+    this.subscriptions.push(
+      this.reportsService.records$.subscribe(() => {
+        this.loadStats();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   loadStats(): void {
@@ -138,24 +144,25 @@ export class Dashboard implements OnInit {
 
     this.stats = [
       {
-        title: 'Total Stock',
+        title: 'Total Products',
         value: totalStock,
         icon: '🏢',
-        description: `${warehouseStock} Products + ${lccStock} LCC units`,
+        description: `${warehouseStock} Warehouse + ${lccStock} LCC units`,
         color: 'blue'
       },
       {
-        title: 'Total Products',
+        title: 'Total Stocks Items',
         value: totalProducts,
         icon: '📦',
         description: `${warehouseCount} Products + ${lccCount} LCC`,
         color: 'yellow'
+        
       },
       {
         title: 'Low Stock Items',
         value: lowStockCount,
         icon: '⚠️',
-        description: isLowStock ? 'Stock Required' : 'All stocks adequate',
+        description: isLowStock ? 'Stock Required (< 20 PCS)' : 'All stocks adequate',
         color: 'red',
         isAlert: isLowStock
       },
@@ -189,19 +196,187 @@ export class Dashboard implements OnInit {
 
     this.lowStockProducts = realLowStock;
 
-    // Add recent transfer activities if any
-    if (lccItems.length > 0) {
-      const recentTransfers = lccItems.slice(0, 2).map(item => ({
-        title: 'Transferred to LCC',
-        description: `${item.quantity} PCS of ${item.productId ? item.productId + ' ' : ''}${item.name} by ${item.switchedBy || 'Staff'}`,
-        time: item.date || 'Recent',
-        icon: '🔄'
+    // Build dynamic live activities from reports & operations
+    this.activities = this.buildRecentActivities();
+
+    // Calculate real weekly stock movement
+    this.calculateStockMovement();
+  }
+
+  buildRecentActivities(): ActivityItem[] {
+    const records = this.reportsService.getRecords();
+
+    if (records && records.length > 0) {
+      return records.slice(0, 3).map(r => {
+        let icon = '📦';
+        if (r.eventType === 'STOCK_RECEIVED') icon = '📥';
+        else if (r.eventType === 'STOCK_TRANSFERRED') icon = '🔄';
+        else if (r.eventType === 'PRODUCT_UPDATED') icon = '✏️';
+        else if (r.eventType === 'PRODUCT_DELETED' || r.eventType === 'LCC_TRANSFER_DELETED') icon = '🗑️';
+        else if (r.eventType === 'PRODUCT_ADDED') icon = '✨';
+
+        const qtyPrefix = r.quantityChange > 0 ? `+${r.quantityChange}` : `${r.quantityChange}`;
+        const prodName = r.productId && r.productId !== 'N/A'
+          ? `${r.productId} (${r.productName})`
+          : r.productName;
+
+        let description = '';
+        if (r.eventType === 'STOCK_RECEIVED') {
+          description = `${prodName} • ${qtyPrefix} PCS received by ${r.updatedBy || 'Staff'}`;
+        } else if (r.eventType === 'PRODUCT_ADDED') {
+          description = `${prodName} • ${r.newStock} PCS registered by ${r.updatedBy || 'Staff'}`;
+        } else if (r.eventType === 'STOCK_TRANSFERRED') {
+          description = `${prodName} • ${Math.abs(r.quantityChange)} PCS transferred to LCC by ${r.updatedBy || 'Staff'}`;
+        } else if (r.eventType === 'PRODUCT_UPDATED') {
+          description = `${prodName} • Stock updated to ${r.newStock} PCS by ${r.updatedBy || 'Staff'}`;
+        } else if (r.eventType === 'PRODUCT_DELETED') {
+          description = `${prodName} • Removed from inventory by ${r.updatedBy || 'Admin'}`;
+        } else {
+          description = `${prodName} • ${r.remarks || 'Warehouse operation'}`;
+        }
+
+        return {
+          title: r.eventTitle || 'Warehouse Operation',
+          description,
+          time: this.formatActivityTime(r.date, r.time, r.timestamp),
+          icon
+        };
+      });
+    }
+
+    // Fallback if no records in ReportsService yet: build from transfers and products
+    const lccItems = this.lccService.getItems();
+    const warehouseProducts = this.lccService.getWarehouseProducts();
+    const fallback: ActivityItem[] = [];
+
+    if (lccItems && lccItems.length > 0) {
+      lccItems.slice(0, 2).forEach(item => {
+        fallback.push({
+          title: 'Transferred to LCC',
+          description: `${item.productId ? item.productId + ' (' + item.name + ')' : item.name} • ${item.quantity} PCS transferred by ${item.switchedBy || 'Staff'}`,
+          time: this.formatActivityTime(item.date),
+          icon: '🔄'
+        });
+      });
+    }
+
+    if (warehouseProducts && warehouseProducts.length > 0) {
+      warehouseProducts.slice(0, 2).forEach(p => {
+        fallback.push({
+          title: 'Product in Warehouse',
+          description: `${p.productId ? p.productId + ' (' + p.name + ')' : p.name} • ${p.quantity} PCS available in ${p.location || 'Warehouse'}`,
+          time: this.formatActivityTime(p.receivedDate),
+          icon: '📦'
+        });
+      });
+    }
+
+    return fallback.slice(0, 4);
+  }
+
+  private formatActivityTime(dateStr?: string, timeStr?: string, timestamp?: number): string {
+    const today = new Date();
+    const todayYMD = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const todayDMY = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+
+    const isToday =
+      dateStr === todayYMD ||
+      dateStr === todayDMY ||
+      (timestamp ? new Date(timestamp).toDateString() === today.toDateString() : false);
+
+    const timePortion = timeStr ? ` at ${timeStr}` : '';
+    if (isToday) {
+      return `Today${timePortion}`;
+    }
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yestYMD = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+    const yestDMY = `${String(yesterday.getDate()).padStart(2, '0')}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${yesterday.getFullYear()}`;
+
+    const isYesterday =
+      dateStr === yestYMD ||
+      dateStr === yestDMY ||
+      (timestamp ? new Date(timestamp).toDateString() === yesterday.toDateString() : false);
+
+    if (isYesterday) {
+      return `Yesterday${timePortion}`;
+    }
+
+    return dateStr ? `${dateStr}${timePortion}` : 'Recent';
+  }
+
+  private normalizeDateToYMD(dateStr?: string): string {
+    if (!dateStr) return '';
+    // If DD-MM-YYYY -> convert to YYYY-MM-DD
+    if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+      const [d, m, y] = dateStr.split('-');
+      return `${y}-${m}-${d}`;
+    }
+    return dateStr;
+  }
+
+  calculateStockMovement(): void {
+    const records = this.reportsService.getRecords();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const last7Days: { day: string; dateStr: string; received: number; distributed: number }[] = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      last7Days.push({
+        day: days[d.getDay()],
+        dateStr,
+        received: 0,
+        distributed: 0
+      });
+    }
+
+    let hasActivity = false;
+    if (records && records.length > 0) {
+      records.forEach(r => {
+        const normDate = this.normalizeDateToYMD(r.date);
+        const bucket = last7Days.find(d => d.dateStr === r.date || d.dateStr === normDate);
+        if (bucket) {
+          if (r.eventType === 'STOCK_RECEIVED' || r.eventType === 'PRODUCT_ADDED') {
+            bucket.received += Math.max(0, Number(r.quantityChange) || 0);
+            hasActivity = true;
+          } else if (r.eventType === 'STOCK_TRANSFERRED') {
+            bucket.distributed += Math.abs(Number(r.quantityChange) || 0);
+            hasActivity = true;
+          }
+        }
+      });
+    }
+
+    if (hasActivity) {
+      this.stockMovement = last7Days.map(d => ({
+        day: d.day,
+        received: d.received,
+        distributed: d.distributed
       }));
-      this.activities = [...recentTransfers, ...this.activities.slice(0, 2)];
+    } else {
+      // Default baseline preview if no recorded daily movements yet
+      this.stockMovement = [
+        { day: 'Mon', received: 70, distributed: 35 },
+        { day: 'Tue', received: 95, distributed: 55 },
+        { day: 'Wed', received: 60, distributed: 45 },
+        { day: 'Thu', received: 120, distributed: 70 },
+        { day: 'Fri', received: 85, distributed: 50 },
+        { day: 'Sat', received: 105, distributed: 65 },
+        { day: 'Sun', received: 45, distributed: 25 }
+      ];
     }
   }
 
   getBarHeight(value: number): number {
-    return (value / 120) * 100;
+    if (!value || value <= 0) return 0;
+    const maxVal = Math.max(
+      ...this.stockMovement.map(m => Math.max(m.received, m.distributed)),
+      120
+    );
+    return Math.min(100, Math.max(8, (value / maxVal) * 100));
   }
 }

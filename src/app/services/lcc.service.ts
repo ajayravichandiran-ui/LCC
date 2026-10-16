@@ -22,10 +22,11 @@ export class LccService {
   items$: Observable<LccTransferItem[]> = this.itemsSubject.asObservable();
 
   private deduplicateItems(items: LccTransferItem[]): LccTransferItem[] {
+    const active = items.filter(it => (Number(it.quantity) || 0) > 0);
     const grouped = new Map<string, LccTransferItem[]>();
 
-    for (const item of items) {
-      const key = (item.productId || item.name || '').trim().toLowerCase();
+    for (const item of active) {
+      const key = (item.name || item.productId || '').trim().toLowerCase();
       if (!key) continue;
 
       if (!grouped.has(key)) {
@@ -55,10 +56,13 @@ export class LccService {
         });
 
         const latest = list[0];
+        const earliest = list[list.length - 1];
         const totalQty = list.reduce((sum, it) => sum + (Number(it.quantity) || 0), 0);
 
         result.push({
           ...latest,
+          productId: earliest.productId || latest.productId,
+          name: earliest.name || latest.name,
           quantity: totalQty
         });
       }
@@ -104,7 +108,7 @@ export class LccService {
         if (data) {
           const parsed = JSON.parse(data);
           if (Array.isArray(parsed)) {
-            return parsed;
+            return parsed.filter((p: any) => (Number(p.quantity) || 0) > 0);
           }
         }
       }
@@ -116,10 +120,10 @@ export class LccService {
 
   addTransfer(item: Omit<LccTransferItem, 'id' | 'createdAt'>): LccTransferItem {
     const current = this.deduplicateItems(this.itemsSubject.value);
-    const itemKey = (item.productId || item.name || '').trim().toLowerCase();
+    const itemKey = (item.name || item.productId || '').trim().toLowerCase();
 
     const existingIndex = current.findIndex(existing => {
-      const existingKey = (existing.productId || existing.name || '').trim().toLowerCase();
+      const existingKey = (existing.name || existing.productId || '').trim().toLowerCase();
       return existingKey === itemKey;
     });
 
@@ -135,6 +139,8 @@ export class LccService {
       resultItem = {
         ...existing,
         ...item,
+        productId: existing.productId || item.productId,
+        name: existing.name || item.name,
         quantity: accumulatedQuantity,
         id: existing.id,
         createdAt: now

@@ -144,8 +144,13 @@
 
 .stat-card p {
   margin: 0;
-  color: #9299a3;
-  font-size: 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.stat-highlight-yellow {
+  color: #c27803;
+  font-weight: 600;
 }
 
 .stat-card.red .stat-icon {
@@ -169,15 +174,15 @@
 
 .stat-icon.alert-blinking {
   background: #fee2e2 !important;
-  color: #dc2626;
+  color: #0b170d;
   border: 1px solid #fecaca;
   animation: iconPulseRed 1.4s infinite ease-in-out;
 }
 
-.warning-blink-red {
+.warning-blink-red { 
   color: #dc2626 !important;
   font-weight: 700 !important;
-  font-size: 13px !important;
+  font-size: 12.5px !important;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -477,6 +482,19 @@
 .activity-details > span {
   color: #a0a5ae;
   font-size: 11px;
+}
+
+.empty-activity-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+  color: #858d99;
+  font-size: 13px;
+  text-align: center;
+  background: #fffdf8;
+  border: 1px dashed #f0eee8;
+  border-radius: 12px;
 }
 
 /* Low stock table */
