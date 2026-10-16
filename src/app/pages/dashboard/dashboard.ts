@@ -155,7 +155,7 @@ export class Dashboard implements OnInit {
         title: 'Low Stock Items',
         value: lowStockCount,
         icon: '⚠️',
-        description: isLowStock ? 'About to update the product' : 'All stocks adequate',
+        description: isLowStock ? 'Stock Required' : 'All stocks adequate',
         color: 'red',
         isAlert: isLowStock
       },
