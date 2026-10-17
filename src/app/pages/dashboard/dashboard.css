@@ -9,10 +9,10 @@
 .dashboard-page {
   width: 100%;
   min-width: 0;
-  min-height: 100vh;
+  min-height: 80vh;
   padding: 0 36px 36px;
   color: #263238;
-  background: linear-gradient(135deg, #fff7d6 0%, #fffcf2 35%, #ffffff 100%);
+  background: #ffffff;
 }
 
 /* Header */

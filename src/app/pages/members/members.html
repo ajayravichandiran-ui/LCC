@@ -1,0 +1,126 @@
+<div class="members-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="header-text">
+      <h1>Members</h1>
+      <p>Warehouse personnel, shift supervisors, operators, and logistics teams.</p>
+    </div>
+  </header>
+
+  <!-- Members Register -->
+  <section class="members-register">
+    <!-- Summary Cards -->
+    <div class="stats-summary">
+      <div class="summary-card">
+        <span class="summary-label">Total Registered Staff</span>
+        <h2>{{ totalMembers }}</h2>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label">Active On-Duty</span>
+        <h2 class="text-active">{{ activeMembersCount }}</h2>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label">Warehouse Leads</span>
+        <h2>2</h2>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label">Operations & Dispatch</span>
+        <h2>3</h2>
+      </div>
+    </div>
+
+    <!-- Toolbar: Search & Filters -->
+    <div class="toolbar-section">
+      <input
+        type="search"
+        class="search-input"
+        placeholder="Search by Member Name, Role, ID, or Department..."
+        [(ngModel)]="searchText"
+        aria-label="Search members"
+      />
+
+      <div class="filter-pills">
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="roleFilter === 'All'"
+          (click)="roleFilter = 'All'"
+        >
+          All ({{ members.length }})
+        </button>
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="roleFilter === 'Lead'"
+          (click)="roleFilter = 'Lead'"
+        >
+          Leads
+        </button>
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="roleFilter === 'Supervisor'"
+          (click)="roleFilter = 'Supervisor'"
+        >
+          Supervisors
+        </button>
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="roleFilter === 'Operator'"
+          (click)="roleFilter = 'Operator'"
+        >
+          Operators
+        </button>
+      </div>
+    </div>
+
+    <!-- Members Grid -->
+    <div class="members-grid" *ngIf="filteredMembers.length > 0; else emptyState">
+      <div class="member-card" *ngFor="let m of filteredMembers">
+        <div class="card-header">
+          <div class="avatar-circle">
+            {{ m.name.charAt(0) }}
+          </div>
+          <div class="member-title-info">
+            <h3>{{ m.name }}</h3>
+            <span class="member-id">{{ m.id }}</span>
+          </div>
+          <span class="status-indicator" [class.active]="m.status === 'Active'">
+            {{ m.status }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <div class="info-row">
+            <span class="info-label">Role:</span>
+            <span class="info-val font-bold">{{ m.role }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Department:</span>
+            <span class="info-val">{{ m.department }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Contact:</span>
+            <span class="info-val">{{ m.phone }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Joined:</span>
+            <span class="info-val">{{ m.joinedDate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <h3>No staff members found</h3>
+        <p>Try searching with another name or reset the role filter.</p>
+      </div>
+    </ng-template>
+  </section>
+</div>

@@ -1,0 +1,133 @@
+<div class="distribution-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="header-text">
+      <h1>Distribution</h1>
+      <p>Track outbound dispatches, logistics, and delivery manifests across warehouse destinations.</p>
+    </div>
+  </header>
+
+  <!-- Distribution Register -->
+  <section class="distribution-register">
+    <!-- Summary Cards -->
+    <div class="stats-summary">
+      <div class="summary-card">
+        <span class="summary-label">Total Dispatches</span>
+        <h2>{{ totalDispatches }}</h2>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label">Total Pieces Dispatched</span>
+        <h2>{{ totalPiecesDispatched }}</h2>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label">In-Transit Shipments</span>
+        <h2 class="text-transit">{{ inTransitCount }}</h2>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label">Delivered Shipments</span>
+        <h2 class="text-delivered">{{ deliveredCount }}</h2>
+      </div>
+    </div>
+
+    <!-- Toolbar: Search & Filters -->
+    <div class="toolbar-section">
+      <input
+        type="search"
+        class="search-input"
+        placeholder="Search by Manifest ID, Destination, Driver, or Vehicle..."
+        [(ngModel)]="searchText"
+        aria-label="Search dispatches"
+      />
+
+      <div class="filter-pills">
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="statusFilter === 'All'"
+          (click)="statusFilter = 'All'"
+        >
+          All ({{ dispatches.length }})
+        </button>
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="statusFilter === 'In-Transit'"
+          (click)="statusFilter = 'In-Transit'"
+        >
+          In-Transit
+        </button>
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="statusFilter === 'Delivered'"
+          (click)="statusFilter = 'Delivered'"
+        >
+          Delivered
+        </button>
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="statusFilter === 'Pending'"
+          (click)="statusFilter = 'Pending'"
+        >
+          Pending
+        </button>
+      </div>
+    </div>
+
+    <!-- Dispatches Table / Responsive Cards -->
+    <div class="table-responsive-wrapper" *ngIf="filteredDispatches.length > 0; else emptyState">
+      <table class="distribution-table">
+        <thead>
+          <tr>
+            <th>Manifest ID</th>
+            <th>Destination</th>
+            <th>Driver & Vehicle</th>
+            <th>Items / PCS</th>
+            <th>Dispatch Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredDispatches">
+            <td>
+              <span class="manifest-badge">{{ item.id }}</span>
+            </td>
+            <td>
+              <strong class="dest-title">{{ item.destination }}</strong>
+            </td>
+            <td>
+              <div class="driver-info">
+                <span>{{ item.driverName }}</span>
+                <small>{{ item.vehicleNo }}</small>
+              </div>
+            </td>
+            <td>
+              <strong>{{ item.itemsCount }} Items</strong>
+              <small class="pcs-label">{{ item.piecesCount }} PCS</small>
+            </td>
+            <td>
+              <span>{{ item.dispatchDate | date:'dd-MM-yyyy' }}</span>
+            </td>
+            <td>
+              <span class="status-badge" [ngClass]="item.status.toLowerCase()">
+                {{ item.status }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <h3>No dispatches found</h3>
+        <p>Try refining your search keyword or selecting a different status filter.</p>
+      </div>
+    </ng-template>
+  </section>
+</div>
