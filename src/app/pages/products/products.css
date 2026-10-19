@@ -15,7 +15,7 @@
 .products-page {
   min-height: 80vh;
   min-width: 0;
-  padding: 36px 36px 48px;
+  padding: 36px 36px 96px;
   background: #ffffff;
   color: #263238;
 }
@@ -89,6 +89,46 @@ button {
   transform: translateY(-1px);
 }
 
+.restock-header-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border: 1.5px solid #ebd74d;
+  border-radius: 10px;
+  background: #fffdf0;
+  color: #5c4800;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.restock-header-btn svg {
+  stroke: #8c7300;
+  transition: transform 0.2s ease, stroke 0.2s ease;
+}
+
+.restock-header-btn:hover {
+  background: #F9E662;
+  border-color: #dfc833;
+  color: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(249, 230, 98, 0.4);
+}
+
+.restock-header-btn:hover svg {
+  stroke: #1e293b;
+  transform: rotate(12deg);
+}
+
+.restock-header-btn:active {
+  transform: translateY(0);
+}
+
 .add-product-btn {
   flex-shrink: 0;
   padding: 13px 20px;
@@ -96,14 +136,18 @@ button {
   border-radius: 10px;
   background: #F9E662;
   color: #1e293b;
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .add-product-btn:hover {
   background: #ecd548;
   border-color: #dfc833;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(249, 230, 98, 0.4);
 }
 
 
@@ -345,13 +389,14 @@ button {
 .receive-stock-btn,
 .edit-product-btn,
 .delete-product-btn {
-  padding: 9px 15px;
+  padding: 9px 18px;
   border: 1px solid #d1d5db;
   border-radius: 9px;
   background: #fff;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 650;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .receive-stock-btn {
@@ -370,10 +415,18 @@ button {
 }
 
 .edit-product-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border-color: #d1d5db;
   background: #ffffff;
   color: #374151;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.edit-product-btn svg {
+  stroke: #64748b;
+  transition: stroke 0.2s ease;
 }
 
 .edit-product-btn:hover {
@@ -382,6 +435,10 @@ button {
   color: #111827;
   transform: translateY(-1px);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.edit-product-btn:hover svg {
+  stroke: #b45309;
 }
 
 .delete-product-btn {
@@ -418,45 +475,53 @@ button {
 
 /* ==================== SWITCH TO LCC BUTTON ==================== */
 
+/* ==================== SWITCH TO LCC (ALWAYS VISIBLE FLOATING BUTTON) ==================== */
+
 .switch-lcc-container {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid #f6eedb;
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 990;
+  margin: 0;
+  padding: 0;
+  border: none;
+  pointer-events: none;
 }
 
 .switch-lcc-btn {
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  min-height: 46px;
-  padding: 12px 26px;
-  border: 1.5px solid #f0c94d;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #fff9e6 0%, #ffefb8 50%, #ffe082 100%);
-  color: #3b2f06;
-  font-size: 14px;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 1.5px solid #d4a500;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #fff9e6 0%, #ffefb8 45%, #ffd54f 100%);
+  color: #2b2202;
+  font-size: 14.5px;
   font-weight: 750;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(230, 180, 20, 0.22);
-  transition: all 0.2s ease;
+  box-shadow: 0 8px 24px rgba(217, 165, 0, 0.38), 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
 
 .switch-lcc-btn:hover {
-  background: linear-gradient(135deg, #fff3cc 0%, #ffe699 50%, #ffd54f 100%);
-  border-color: #e5b800;
-  box-shadow: 0 6px 20px rgba(230, 180, 20, 0.35);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #fff5cc 0%, #ffe885 45%, #ffca28 100%);
+  border-color: #bf9000;
+  box-shadow: 0 12px 30px rgba(217, 165, 0, 0.48), 0 4px 12px rgba(0, 0, 0, 0.14);
+  transform: translateY(-3px) scale(1.02);
 }
 
 .switch-lcc-btn:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 12px rgba(217, 165, 0, 0.3);
 }
 
 .switch-lcc-btn .btn-icon {
-  font-size: 16px;
+  font-size: 17px;
+  display: inline-block;
 }
 
 .switch-lcc-btn .btn-arrow {
@@ -972,6 +1037,7 @@ button {
     margin-bottom: 24px;
   }
 
+  .restock-header-btn,
   .add-product-btn {
     width: 100%;
   }
@@ -1149,6 +1215,40 @@ button {
 
 .receive-stock-modal {
   width: min(100%, 640px);
+}
+
+.product-select-dropdown {
+  min-height: 48px;
+  border: 1.5px solid #ebdca8 !important;
+  background-color: #fffdf8 !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  cursor: pointer;
+}
+
+.product-select-dropdown:focus {
+  border-color: #d6a800 !important;
+  box-shadow: 0 0 0 3px rgba(249, 230, 98, 0.3) !important;
+}
+
+.receive-select-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: #fffdf5;
+  border: 1.5px dashed #fae8a4;
+  color: #856a1e;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.receive-select-hint .hint-icon {
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .receive-product-banner {
@@ -1368,47 +1468,7 @@ button {
   transform: translateY(-1px);
 }
 
-/* ==================== EXISTING PRODUCT NOTICE ==================== */
 
-.existing-product-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  background: #f0fdf4;
-  border: 1.5px solid #86efac;
-  border-radius: 12px;
-  margin-top: 10px;
-  margin-bottom: 6px;
-  color: #166534;
-}
-
-.existing-product-notice .notice-icon {
-  font-size: 20px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.existing-product-notice .notice-body strong {
-  display: block;
-  font-size: 13px;
-  color: #14532d;
-  margin-bottom: 3px;
-}
-
-.existing-product-notice .notice-body p {
-  margin: 0;
-  font-size: 12px;
-  color: #15803d;
-  line-height: 1.45;
-}
-
-.existing-product-notice .new-stock-preview {
-  display: inline-block;
-  margin-left: 4px;
-  color: #047857;
-  font-weight: 700;
-}
 
 /* ==================== RESPONSIVE QUERIES ==================== */
 
@@ -1421,7 +1481,7 @@ button {
 
 @media (max-width: 768px) {
   .products-page {
-    padding: 20px 16px 36px;
+    padding: 20px 16px 88px;
   }
 
   .products-header {
@@ -1433,10 +1493,16 @@ button {
 
   .header-actions {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .add-product-btn {
+  .restock-header-btn,
+  .add-product-btn,
+  .reset-data-btn {
     width: 100%;
+    justify-content: center;
     text-align: center;
   }
 
@@ -1463,18 +1529,99 @@ button {
     gap: 16px;
   }
 
+  .switch-lcc-container {
+    right: 18px;
+    bottom: 20px;
+  }
+
   .switch-lcc-btn {
-    width: 100%;
-    justify-content: center;
+    width: auto !important;
+    min-height: 44px;
+    padding: 10px 20px;
+    font-size: 13.5px;
+  }
+
+  .modal-overlay {
+    padding: 12px;
   }
 
   .modal-dialog,
   .transfer-modal,
   .receive-modal,
-  .product-form-modal {
-    width: 95% !important;
+  .product-form-modal,
+  .product-modal {
+    width: 100% !important;
     max-width: 100% !important;
-    margin: 10px auto;
-    padding: 20px 16px;
+    margin: auto;
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    max-height: 92vh !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .products-page {
+    padding: 14px 12px 80px;
+  }
+
+  .products-header h1 {
+    font-size: 26px;
+  }
+
+  .stock-register {
+    padding: 14px 12px;
+  }
+
+  .switch-lcc-container {
+    right: 14px;
+    bottom: 16px;
+  }
+
+  .switch-lcc-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .product-image {
+    height: 180px;
+  }
+
+  .product-details {
+    padding: 16px 14px 12px;
+  }
+
+  .product-actions {
+    padding: 12px 14px 16px;
+    gap: 8px;
+  }
+
+  .receive-stock-btn,
+  .edit-product-btn,
+  .delete-product-btn {
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+    justify-content: center;
+    padding: 9px 8px;
+    font-size: 12px;
+  }
+
+  .available-stock-banner {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .dialog-actions,
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .dialog-actions button,
+  .form-actions button {
+    width: 100%;
+    justify-content: center;
   }
 }

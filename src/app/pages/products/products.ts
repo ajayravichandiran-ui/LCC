@@ -76,12 +76,14 @@ export class Products {
   showTransferForm = false;
   showReceiveStockModal = false;
   selectedReceiveProduct: Product | null = null;
+  selectedReceiveProductId: number | null = null;
   receiveStockForm = {
     quantity: null as number | null,
     updatedBy: '',
     date: ''
   };
   editingId: number | null = null;
+  isCustomProductId = false;
 
   // Generic in-app dialog
   modalDialog: AppModalDialog = {
@@ -295,34 +297,35 @@ export class Products {
     return `${prefix}_${this.nextProductId}`;
   }
 
-  get existingMatchedProduct(): Product | null {
-    if (this.editingId !== null || !this.productForm.name) {
-      return null;
+  get availableProductNames(): string[] {
+    if (this.editingId !== null) {
+      return this.productNames;
     }
-    const clean = this.productForm.name.trim().toLowerCase();
-    if (!clean) return null;
-    return this.products.find(p => (p.name || '').trim().toLowerCase() === clean) || null;
+    const existingNames = new Set(
+      this.products.map(p => (p.name || '').trim().toLowerCase())
+    );
+    return this.productNames.filter(
+      item => !existingNames.has(item.trim().toLowerCase())
+    );
+  }
+
+  get existingMatchedProduct(): Product | null {
+    return null;
   }
 
   onProductNameChange(name: string): void {
     if (!name) {
       return;
     }
-    const cleanName = name.trim().toLowerCase();
-    const existing = this.products.find(p => (p.name || '').trim().toLowerCase() === cleanName);
-
-    if (existing && this.editingId === null) {
-      // Product already exists in warehouse -> reuse its established Product ID and Location
-      this.productForm.productId = existing.productId;
-      if (existing.location && !this.productForm.location) {
-        this.productForm.location = existing.location;
-      }
-    } else if (this.editingId === null) {
+    // Only auto-generate prefix if adding a new product and user hasn't typed a custom Product ID
+    if (this.editingId === null && !this.isCustomProductId) {
       const prefix = this.getPrefixFromName(name);
-      const numMatch = this.productForm.productId?.match(/\d+/);
-      const num = numMatch ? numMatch[0] : String(this.nextProductId);
-      this.productForm.productId = `${prefix}_${num}`;
+      this.productForm.productId = `${prefix}_${this.nextProductId}`;
     }
+  }
+
+  onProductIdInput(): void {
+    this.isCustomProductId = true;
   }
 
   // ==================== TRANSFER FORM ====================
@@ -507,16 +510,23 @@ export class Products {
       return;
     }
 
+    const inWarehouse = this.products.some(
+      p => (p.name || '').trim().toLowerCase() === name.toLowerCase()
+    );
+
+    if (inWarehouse) {
+      this.addNameError = `"${name}" already exists in the warehouse. Use "Restock" to add stock.`;
+      return;
+    }
+
     const alreadyExists = this.productNames.some(
       item => item.toLowerCase() === name.toLowerCase()
     );
 
-    if (alreadyExists) {
-      this.addNameError = 'This product name already exists.';
-      return;
+    if (!alreadyExists) {
+      this.productNames = [...this.productNames, name];
     }
 
-    this.productNames = [...this.productNames, name];
     this.productForm.name = name;
     this.onProductNameChange(name);
     this.closeAddNameModal();
@@ -558,6 +568,7 @@ export class Products {
 
   openAddForm(): void {
     this.editingId = null;
+    this.isCustomProductId = false;
     this.productForm = this.emptyProduct();
     this.showForm = true;
   }
@@ -566,6 +577,7 @@ export class Products {
 
   editProduct(product: Product): void {
     this.editingId = product.id;
+    this.isCustomProductId = true;
 
     this.productForm = {
       ...product,
@@ -632,66 +644,28 @@ export class Products {
       this.productNames = [...this.productNames, name];
     }
 
-    // ==================== CHECK FOR EXISTING PRODUCT (NO REPETITION) ====================
+    // ==================== CHECK ON ADDING: STRICTLY NEW PRODUCTS ONLY ====================
     if (this.editingId === null) {
-      // Adding a product: Check if product with this name (or productId) already exists
-      const existingProduct = this.products.find(
-        p => (p.name || '').trim().toLowerCase() === name.toLowerCase() ||
-             (p.productId || '').trim().toLowerCase() === productId.toLowerCase()
+      const existingByName = this.products.find(
+        p => (p.name || '').trim().toLowerCase() === name.toLowerCase()
       );
 
-      if (existingProduct) {
-        // Product already exists -> merge into existing product (no duplicate card!)
-        const prevStock = existingProduct.quantity;
-        const addedQty = quantity;
-        const newTotalStock = prevStock + addedQty;
-
-        const updatedProduct: Product = {
-          ...existingProduct,
-          name: name, // Updated name / casing
-          quantity: newTotalStock,
-          receivedDate: this.productForm.receivedDate || this.getTodayDate(),
-          updatedBy: updatedBy,
-          location: location || existingProduct.location,
-          sponsorName: this.productForm.sponsorName || existingProduct.sponsorName || '',
-          image: this.productForm.image || existingProduct.image || ''
-        };
-
-        this.products = this.products.map(p =>
-          p.id === existingProduct.id ? updatedProduct : p
+      if (existingByName) {
+        this.showWarning(
+          'Product Already Exists',
+          `"${existingByName.name}" already exists in the warehouse (${existingByName.productId}). "Add Products" is only for adding new products. Please use the "Restock" button to add stock.`
         );
-        this.saveProducts();
+        return;
+      }
 
-        // Record stock addition in Reports line-by-line
-        this.reportsService.recordEntry({
-          productId: existingProduct.productId,
-          productName: existingProduct.name,
-          eventType: 'STOCK_RECEIVED',
-          eventTitle: 'Stock Added to Existing Product',
-          quantityChange: addedQty,
-          previousStock: prevStock,
-          newStock: newTotalStock,
-          location: updatedProduct.location,
-          updatedBy: updatedBy,
-          remarks: `Added +${addedQty} PCS to existing ${existingProduct.name} (Total: ${newTotalStock} PCS)${this.productForm.sponsorName ? ' • Sponsor: ' + this.productForm.sponsorName : ''}`,
-          date: updatedProduct.receivedDate
-        });
+      const existingById = this.products.find(
+        p => (p.productId || '').trim().toLowerCase() === productId.toLowerCase()
+      );
 
-        this.closeForm();
-
-        this.showSuccess(
-          'Existing Product Stock Updated!',
-          `"${existingProduct.name}" already exists in inventory. Added +${addedQty} PCS to existing stock without creating a duplicate.`,
-          [
-            { label: 'Product ID', value: existingProduct.productId },
-            { label: 'Product Name', value: existingProduct.name },
-            { label: 'Previous Stock', value: `${prevStock} PCS` },
-            { label: 'Added Quantity', value: `+${addedQty} PCS` },
-            { label: 'Total Available Stock', value: `${newTotalStock} PCS` },
-            { label: 'Received Date', value: updatedProduct.receivedDate },
-            { label: 'Updated By', value: updatedBy },
-            { label: 'Location', value: updatedProduct.location }
-          ]
+      if (existingById) {
+        this.showWarning(
+          'Product ID Already Exists',
+          `Product ID "${productId}" is already used by "${existingById.name}". Please enter a unique Product ID.`
         );
         return;
       }
@@ -699,60 +673,17 @@ export class Products {
 
     // ==================== EDITING EXISTING PRODUCT ====================
     if (this.editingId !== null) {
-      // Check if user changed name or productId to match ANOTHER product
+      // Check if user changed productId to match ANOTHER product
       const conflictingProduct = this.products.find(
         existing =>
           existing.id !== this.editingId &&
-          ((existing.name || '').trim().toLowerCase() === name.toLowerCase() ||
-           (existing.productId || '').trim().toLowerCase() === productId.toLowerCase())
+          (existing.productId || '').trim().toLowerCase() === productId.toLowerCase()
       );
 
       if (conflictingProduct) {
-        // Merge this edited product into the target conflicting product
-        const prevStock = conflictingProduct.quantity;
-        const newTotal = prevStock + quantity;
-
-        const merged: Product = {
-          ...conflictingProduct,
-          quantity: newTotal,
-          receivedDate: this.productForm.receivedDate || conflictingProduct.receivedDate,
-          updatedBy: updatedBy,
-          location: location || conflictingProduct.location,
-          sponsorName: this.productForm.sponsorName || conflictingProduct.sponsorName || '',
-          image: this.productForm.image || conflictingProduct.image || ''
-        };
-
-        // Remove edited product and update the target product
-        this.products = this.products
-          .filter(p => p.id !== this.editingId)
-          .map(p => p.id === conflictingProduct.id ? merged : p);
-        this.saveProducts();
-
-        // Record in reports
-        this.reportsService.recordEntry({
-          productId: conflictingProduct.productId,
-          productName: conflictingProduct.name,
-          eventType: 'PRODUCT_UPDATED',
-          eventTitle: 'Product Merged on Edit',
-          quantityChange: quantity,
-          previousStock: prevStock,
-          newStock: newTotal,
-          location: merged.location,
-          updatedBy: updatedBy,
-          remarks: `Merged into existing ${conflictingProduct.name} (+${quantity} PCS)`,
-          date: merged.receivedDate
-        });
-
-        this.closeForm();
-
-        this.showSuccess(
-          'Products Merged Successfully!',
-          `Product was merged into existing "${conflictingProduct.name}" to prevent repetition.`,
-          [
-            { label: 'Product ID', value: conflictingProduct.productId },
-            { label: 'Total Stock', value: `${newTotal} PCS` },
-            { label: 'Updated By', value: updatedBy }
-          ]
+        this.showWarning(
+          'Product ID In Use',
+          `Product ID "${productId}" is already used by "${conflictingProduct.name}". Please enter a unique Product ID.`
         );
         return;
       }
@@ -779,6 +710,11 @@ export class Products {
         existing.id === this.editingId ? product : existing
       );
       this.saveProducts();
+
+      // Remember new product name in suggestion list
+      if (!this.productNames.some(item => item.toLowerCase() === name.toLowerCase())) {
+        this.productNames = [...this.productNames, name];
+      }
 
       this.reportsService.recordEntry({
         productId: product.productId,
@@ -809,6 +745,8 @@ export class Products {
       );
       return;
     }
+
+
 
     // ==================== BRAND NEW PRODUCT ====================
     const product: Product = {
@@ -868,23 +806,56 @@ export class Products {
 
   // ==================== RECEIVE STOCK ====================
 
-  openReceiveStock(product: Product): void {
-    this.selectedReceiveProduct = product;
+  openReceiveStockModal(product?: Product): void {
+    if (this.products.length === 0) {
+      this.showWarning(
+        'No Products Available',
+        'There are currently no products in the warehouse to restock. Please add a product first.'
+      );
+      return;
+    }
+
+    if (product) {
+      this.selectedReceiveProduct = product;
+      this.selectedReceiveProductId = product.id;
+    } else {
+      this.selectedReceiveProduct = null;
+      this.selectedReceiveProductId = null;
+    }
+
     this.receiveStockForm = {
       quantity: null,
-      updatedBy: product.updatedBy || '',
+      updatedBy: this.selectedReceiveProduct?.updatedBy || this.selectedReceiveProduct?.addedBy || '',
       date: this.getTodayDate()
     };
     this.showReceiveStockModal = true;
   }
 
+  onReceiveProductChange(productId: any): void {
+    if (productId === null || productId === undefined || productId === '') {
+      this.selectedReceiveProduct = null;
+      return;
+    }
+    const found = this.products.find(p => p.id === Number(productId)) || null;
+    this.selectedReceiveProduct = found;
+    if (found) {
+      this.receiveStockForm.updatedBy = found.updatedBy || found.addedBy || '';
+    }
+  }
+
+  openReceiveStock(product?: Product): void {
+    this.openReceiveStockModal(product);
+  }
+
   closeReceiveStock(): void {
     this.showReceiveStockModal = false;
     this.selectedReceiveProduct = null;
+    this.selectedReceiveProductId = null;
   }
 
   confirmReceiveStock(): void {
     if (!this.selectedReceiveProduct) {
+      this.showWarning('Select Product', 'Please select a product from the dropdown to restock.');
       return;
     }
 
@@ -948,7 +919,7 @@ export class Products {
   }
 
   addReceivedStock(product: Product): void {
-    this.openReceiveStock(product);
+    this.openReceiveStockModal(product);
   }
 
   // ==================== DELETE PRODUCT ====================

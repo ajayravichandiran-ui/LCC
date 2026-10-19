@@ -2,8 +2,7 @@
 import { Routes } from '@angular/router';
 
 import { LoginComponent } from './pages/login/login.component';
-import { SignupComponent } from './pages/signup/signup.component';
-import { ForgotPassword } from './pages/forgot-password/forgot-password';
+
 
 import { MainLayout } from './layout/main-layout/main-layout';
 
@@ -11,8 +10,7 @@ export const routes: Routes = [
   // 1. Authentication routes (without sidebar)
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'signup', component: SignupComponent },
-  { path: 'forgot-password', component: ForgotPassword },
+
 
   // 2. Application routes (with sidebar)
   {
@@ -42,7 +40,7 @@ export const routes: Routes = [
       {
         path: 'distribution',
         loadComponent: () =>
-          import('./pages/distribution/distribution').then(m => m.DistributionComponent)
+          import('./pages/distribution/distribution').then(m => m.Distribution)
       },
       {
         path: 'members',

@@ -1,7 +1,33 @@
 <div class="page">
 
+  
+<!-- மஞ்சள் நிற முழு Header -->
+<header class="site-header">
+
+  <div class="header-brand">
+    <img src="/asset/logo.png" alt="Sanmarkkam Logo">
+
+    <div>
+      <h1>Sanmarkkam<span>.org</span></h1>
+      <p> •Share &nbsp; • Support  &nbsp; • Build a Better Tomorrow</p>
+    </div>
+  </div>
+
+  <div class="header-badge">
+    <img src="/asset/RS.png" alt="Logo">
+
+    <div>
+      <strong>Give With Love</strong> 
+      <hr>
+      <strong>change A Life</strong>
+    </div>
+  </div>
+
+</header>
+
   <!-- ================= LEFT SIDE (BRAND & HERO) ================= -->
-  <section class="left">
+  <div class="content-layout">
+     <section class="left">
 
     <!-- Decorative dots -->
     <div class="dots" aria-hidden="true">
@@ -9,29 +35,7 @@
       <i></i><i></i><i></i>
       <i></i><i></i><i></i>
     </div>
-
-    <!-- Brand Header -->
-    <div class="brand">
-      <div
-        class="logo"
-        (click)="refreshPage()"
-        title="Refresh Page"
-        tabindex="0"
-        role="button">
-        <img
-          src="/asset/logo.png"
-          alt="Sanmarkkam Logo">
-      </div>
-
-      <div class="brand-content">
-        <h1>
-          sanmarkkam<span>.org</span>
-        </h1>
-        <p>
-          Share &nbsp;•&nbsp; Support &nbsp;•&nbsp; Build a Better Tomorrow
-        </p>
-      </div>
-    </div>
+    
 
     <!-- Message Content -->
     <div class="message">
@@ -41,9 +45,10 @@
       </h2>
 
       <div class="impact-tags">
-        <span class="impact-tag"><b>•</b> Food</span>
-        <span class="impact-tag"><b>•</b> Care</span>
-        <span class="impact-tag"><b>•</b> Hope</span>
+        <span class="impact-tag"><b>•</b> Together</span>
+        <span class="impact-tag"><b>•</b> support</span>
+        <span class="impact-tag"><b>•</b> Spread Hope</span>
+        <span class="impact-tag"><b>•</b> Your Gift</span>
       </div>
     </div>
 
@@ -81,19 +86,7 @@
 
     <div class="right-container">
 
-      <!-- Company Brand Pill -->
-      <div class="logo-container">
-        <img
-          src="/asset/logo1.png"
-          alt="Opon Logo"
-          class="company-logo"
-        />
-
-        <div class="logo-text">
-          <span class="logo-sub">ஒரு பொருள்</span>
-          <span class="logo-main">ஒரு நபர்</span>
-        </div>
-      </div>
+      
 
       <!-- Login Card -->
       <div class="card">
@@ -150,6 +143,7 @@
                 (click)="togglePassword()"
                 aria-label="Show or hide password">
                 <svg
+                  *ngIf="!showPassword"
                   xmlns="http://www.w3.org/2000/svg"
                   width="19"
                   height="19"
@@ -161,6 +155,21 @@
                   stroke-linejoin="round">
                   <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
                   <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg
+                  *ngIf="showPassword"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M3 3l18 18"/>
+                  <path d="M10.6 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.2 4.1"/>
+                  <path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.5 0 2.8-.4 4-1"/>
                 </svg>
               </button>
             </div>
@@ -175,9 +184,12 @@
                 [(ngModel)]="rememberMe">
               <span>Remember me</span>
             </label>
-            <a routerLink="/forgot-password" class="forgot-link">
-              Forgot password?
-            </a>
+            
+            <a href="#"
+   class="forgot-link"
+   (click)="openForgotPassword($event)">
+  Forgot password?
+</a>
           </div>
 
           <!-- Login Button -->
@@ -189,12 +201,6 @@
 
         </form>
 
-        <!-- Sign Up Link -->
-        <div class="signup-text">
-          Don't have an account?
-          <a routerLink="/signup">Sign Up</a>
-        </div>
-
         <!-- Divider -->
         <div class="divider">
           <span></span>
@@ -202,19 +208,227 @@
           <span></span>
         </div>
 
+        <!-- Sign Up Link -->
+<div class="signup-text">
+  Don't have an account?
+  <a href="#" (click)="openSignup($event)">Sign Up</a>
+</div>
+<br>
+  
+
         <!-- Footer -->
-        <div class="footer">
-          Secure Login
-          <b>•</b>
-          Easy Access
-          <b>•</b>
-          Better Together
-        </div>
+        
+<div class="tamil-quote">
+  <span class="lamp">🪔</span>
+  <p>"அறிவு விளங்கிய ஜீவர்களுக்கு<br>
+  ஜீவகாருண்யமே கடவுள் வழிபாடு"</p>
+  <span class="lamp">🪔</span>
+</div>
+
 
       </div>
 
     </div>
 
   </section>
+ 
+<!-- SIGNUP POPUP -->
+<div class="modal-overlay"
+     *ngIf="showSignup"
+     (click)="closeSignup()">
+
+  <div class="signup-popup"
+       (click)="$event.stopPropagation()">
+
+    <button
+      type="button"
+      class="close-btn"
+      (click)="closeSignup()">×</button>
+
+    <h2>Create Account</h2>
+
+    <!-- Full Name -->
+    <label>Full Name</label>
+    <input
+      type="text"
+      placeholder="Enter full name"
+      name="fullName"
+      [(ngModel)]="signupData.fullName">
+
+    <!-- Username -->
+    <label>Username</label>
+    <input
+      type="text"
+      placeholder="Enter username"
+      name="username"
+      [(ngModel)]="signupData.username">
+
+    <!-- Email -->
+    <label>Email</label>
+    <input
+      type="email"
+      placeholder="Enter email address"
+      name="email"
+      [(ngModel)]="signupData.email">
+
+    <!-- Mobile -->
+    <label>Mobile Number</label>
+    <input
+      type="tel"
+      placeholder="Enter mobile number"
+      name="mobile"
+      [(ngModel)]="signupData.mobile"
+      maxlength="10">
+
+    <!-- Create Password -->
+    <label>Create Password</label>
+    <div class="password-field">
+      <input
+        [type]="showCreatePassword ? 'text' : 'password'"
+        placeholder="Create password"
+        name="createPassword"
+        [(ngModel)]="signupData.createPassword">
+
+      <button
+        type="button"
+        class="password-eye"
+        (click)="showCreatePassword = !showCreatePassword">
+        <svg *ngIf="!showCreatePassword"
+             viewBox="0 0 24 24" width="20" height="20"
+             fill="none" stroke="currentColor"
+             stroke-width="1.8">
+          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+
+        <svg *ngIf="showCreatePassword"
+             viewBox="0 0 24 24" width="20" height="20"
+             fill="none" stroke="currentColor"
+             stroke-width="1.8">
+          <path d="M3 3l18 18"/>
+          <path d="M10.6 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.2 4.1"/>
+          <path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.5 0 2.8-.4 4-1"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Confirm Password -->
+    <label>Confirm Password</label>
+    <div class="password-field">
+      <input
+        [type]="showConfirmPassword ? 'text' : 'password'"
+        placeholder="Confirm password"
+        name="confirmPassword"
+        [(ngModel)]="signupData.confirmPassword">
+
+      <button
+        type="button"
+        class="password-eye"
+        (click)="showConfirmPassword = !showConfirmPassword">
+        <svg *ngIf="!showConfirmPassword"
+             viewBox="0 0 24 24" width="20" height="20"
+             fill="none" stroke="currentColor"
+             stroke-width="1.8">
+          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+
+        <svg *ngIf="showConfirmPassword"
+             viewBox="0 0 24 24" width="20" height="20"
+             fill="none" stroke="currentColor"
+             stroke-width="1.8">
+          <path d="M3 3l18 18"/>
+          <path d="M10.6 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.2 4.1"/>
+          <path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.5 0 2.8-.4 4-1"/>
+        </svg>
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="signup-submit"
+      (click)="submitSignup()">
+      Create Account
+    </button>
+
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD POPUP -->
+<div
+  class="modal-overlay"
+  *ngIf="showForgotPassword"
+  (click)="closeForgotPassword()">
+
+  <div
+    class="signup-popup forgot-popup"
+    (click)="$event.stopPropagation()">
+
+    <button
+      type="button"
+      class="close-btn"
+      (click)="closeForgotPassword()">×</button>
+
+    <h2>Forgot Password?</h2>
+
+    <p class="forgot-description">
+      Enter your registered email to reset your password.
+    </p>
+
+    
+<!-- EMAIL INPUT -->
+<input
+  *ngIf="!otpSent"
+  type="email"
+  name="forgotEmail"
+  [(ngModel)]="forgotEmail"
+  placeholder="Enter your email">
+
+<!-- SEND OTP BUTTON -->
+<button
+  *ngIf="!otpSent"
+  type="button"
+  class="signup-submit"
+  (click)="sendForgotOtp()">
+  Send OTP
+</button>
+
+<!-- SIX OTP BOXES -->
+<div *ngIf="otpSent" class="otp-section">
+
+  <p>Enter the 6-digit OTP</p>
+
+  <div class="otp-boxes">
+    <input
+      *ngFor="let digit of otp; let i = index"
+      type="text"
+      inputmode="numeric"
+      maxlength="1"
+      [(ngModel)]="otp[i]"
+      [name]="'otp' + i"
+      (input)="otp[i] = otp[i].replace(/[^0-9]/g, '').slice(-1)"
+      class="otp-input">
+  </div>
+
+  <button
+    type="button"
+    class="signup-submit"
+    (click)="verifyOtp()">
+    Verify OTP
+  </button>
+
+</div>
+
+
+    <button
+      type="button"
+      class="back-login"
+      (click)="closeForgotPassword()">
+      Back to Login
+    </button>
+
+  </div>
+</div>
+
 
 </div>

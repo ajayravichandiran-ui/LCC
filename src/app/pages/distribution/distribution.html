@@ -1,133 +1,513 @@
 <div class="distribution-page">
-  <!-- Page Header -->
-  <header class="page-header">
-    <div class="header-text">
-      <h1>Distribution</h1>
-      <p>Track outbound dispatches, logistics, and delivery manifests across warehouse destinations.</p>
-    </div>
-  </header>
 
-  <!-- Distribution Register -->
-  <section class="distribution-register">
-    <!-- Summary Cards -->
-    <div class="stats-summary">
-      <div class="summary-card">
-        <span class="summary-label">Total Dispatches</span>
-        <h2>{{ totalDispatches }}</h2>
-      </div>
+  <!-- PAGE HEADER -->
+  <div class="page-header">
 
-      <div class="summary-card">
-        <span class="summary-label">Total Pieces Dispatched</span>
-        <h2>{{ totalPiecesDispatched }}</h2>
-      </div>
-
-      <div class="summary-card">
-        <span class="summary-label">In-Transit Shipments</span>
-        <h2 class="text-transit">{{ inTransitCount }}</h2>
-      </div>
-
-      <div class="summary-card">
-        <span class="summary-label">Delivered Shipments</span>
-        <h2 class="text-delivered">{{ deliveredCount }}</h2>
-      </div>
+    <div class="breadcrumb">
+      LCC WAREHOUSE / DISTRIBUTION
     </div>
 
-    <!-- Toolbar: Search & Filters -->
-    <div class="toolbar-section">
-      <input
-        type="search"
-        class="search-input"
-        placeholder="Search by Manifest ID, Destination, Driver, or Vehicle..."
-        [(ngModel)]="searchText"
-        aria-label="Search dispatches"
-      />
+    <div class="header-row">
 
-      <div class="filter-pills">
-        <button
-          type="button"
-          class="pill-btn"
-          [class.active]="statusFilter === 'All'"
-          (click)="statusFilter = 'All'"
-        >
-          All ({{ dispatches.length }})
-        </button>
-        <button
-          type="button"
-          class="pill-btn"
-          [class.active]="statusFilter === 'In-Transit'"
-          (click)="statusFilter = 'In-Transit'"
-        >
-          In-Transit
-        </button>
-        <button
-          type="button"
-          class="pill-btn"
-          [class.active]="statusFilter === 'Delivered'"
-          (click)="statusFilter = 'Delivered'"
-        >
-          Delivered
-        </button>
-        <button
-          type="button"
-          class="pill-btn"
-          [class.active]="statusFilter === 'Pending'"
-          (click)="statusFilter = 'Pending'"
-        >
-          Pending
-        </button>
+      <div>
+        <h1>Distribution</h1>
+
+        <p class="page-description">
+          Manage product distribution from LCC stock.
+        </p>
       </div>
+
+      <button
+        class="new-distribution-btn"
+        type="button"
+        (click)="openDistributionModal()"
+      >
+        New Distribution
+      </button>
+
     </div>
 
-    <!-- Dispatches Table / Responsive Cards -->
-    <div class="table-responsive-wrapper" *ngIf="filteredDispatches.length > 0; else emptyState">
-      <table class="distribution-table">
+  </div>
+
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+
+    <!-- TOTAL DISTRIBUTIONS -->
+    <div class="stat-card">
+
+      <div class="stat-icon yellow">
+        📦
+      </div>
+
+      <div class="stat-content">
+
+        <span>
+          Total Distributions
+        </span>
+
+        <strong>
+          {{ totalDistributions }}
+        </strong>
+
+        <small>
+          All distributions
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- LCC TO DISTRIBUTION -->
+    <div class="stat-card">
+
+      <div class="stat-icon yellow">
+        🔄
+      </div>
+
+      <div class="stat-content">
+
+        <span>
+          LCC to Distribution
+        </span>
+
+        <strong>
+          {{ lccToDistribution }}
+        </strong>
+
+        <small>
+          Total units distributed
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- TODAY DISTRIBUTION -->
+    <div class="stat-card">
+
+      <div class="stat-icon yellow">
+        📅
+      </div>
+
+      <div class="stat-content">
+
+        <span>
+          Today Distribution
+        </span>
+
+        <strong>
+          {{ todayDistribution }}
+        </strong>
+
+        <small>
+          Units distributed today
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- DISTRIBUTION HISTORY -->
+  <div class="history-card">
+
+    <div class="history-header">
+
+      <div>
+        <h2>
+          Distribution History
+        </h2>
+
+        <p>
+          Track all product distributions.
+        </p>
+      </div>
+
+      <div class="search-box">
+
+        <input
+          type="text"
+          placeholder="Search distribution..."
+          [(ngModel)]="searchText"
+        />
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-container">
+
+      <table>
+
         <thead>
+
           <tr>
-            <th>Manifest ID</th>
-            <th>Destination</th>
-            <th>Driver & Vehicle</th>
-            <th>Items / PCS</th>
-            <th>Dispatch Date</th>
+            <th>#</th>
+            <th>Distribution ID</th>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Volunteer</th>
+            <th>Receiver</th>
+            <th>Date</th>
             <th>Status</th>
           </tr>
+
         </thead>
+
+
         <tbody>
-          <tr *ngFor="let item of filteredDispatches">
+
+          <tr
+            *ngFor="
+              let distribution of filteredDistributions;
+              let i = index
+            "
+          >
+
             <td>
-              <span class="manifest-badge">{{ item.id }}</span>
+              {{ i + 1 }}
             </td>
+
             <td>
-              <strong class="dest-title">{{ item.destination }}</strong>
+              <strong class="distribution-id">
+                {{ distribution.id }}
+              </strong>
             </td>
+
             <td>
-              <div class="driver-info">
-                <span>{{ item.driverName }}</span>
-                <small>{{ item.vehicleNo }}</small>
-              </div>
+              {{ distribution.product }}
             </td>
+
             <td>
-              <strong>{{ item.itemsCount }} Items</strong>
-              <small class="pcs-label">{{ item.piecesCount }} PCS</small>
+              <strong>
+                {{ distribution.quantity }}
+              </strong>
             </td>
+
             <td>
-              <span>{{ item.dispatchDate | date:'dd-MM-yyyy' }}</span>
+              {{ distribution.volunteer }}
             </td>
+
             <td>
-              <span class="status-badge" [ngClass]="item.status.toLowerCase()">
-                {{ item.status }}
+              {{ distribution.receiver }}
+            </td>
+
+            <td>
+              {{ distribution.date }}
+            </td>
+
+            <td>
+
+              <span class="status-badge assigned">
+                {{ distribution.status }}
               </span>
+
             </td>
+
           </tr>
+
+
+          <!-- NO DATA -->
+          <tr
+            *ngIf="
+              filteredDistributions.length === 0
+            "
+          >
+
+            <td
+              colspan="8"
+              class="no-data"
+            >
+              No distribution records found.
+            </td>
+
+          </tr>
+
         </tbody>
+
       </table>
+
     </div>
 
-    <!-- Empty State -->
-    <ng-template #emptyState>
-      <div class="empty-state">
-        <h3>No dispatches found</h3>
-        <p>Try refining your search keyword or selecting a different status filter.</p>
+  </div>
+
+
+  <!-- MODAL -->
+  <div
+    class="modal-overlay"
+    *ngIf="showModal"
+    (click)="closeModal()"
+  >
+
+    <div
+      class="modal"
+      (click)="$event.stopPropagation()"
+    >
+
+
+      <!-- MODAL HEADER -->
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-label">
+            LCC WAREHOUSE
+          </span>
+
+          <h2>
+            Assign Product
+          </h2>
+
+          <p>
+            Assign a product from available LCC stock.
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="close-btn"
+          (click)="closeModal()"
+        >
+          ×
+        </button>
+
       </div>
-    </ng-template>
-  </section>
+
+
+      <!-- MODAL BODY -->
+      <div class="modal-body">
+
+
+        <!-- VOLUNTEER -->
+        <div class="form-group">
+
+          <label>
+            Volunteer Name
+          </label>
+
+          <input
+            type="text"
+            [(ngModel)]="selectedVolunteer"
+            placeholder="Enter volunteer name"
+          />
+
+        </div>
+
+
+        <!-- PRODUCT -->
+        <div class="form-group">
+
+          <label>
+            Product
+          </label>
+
+          <select
+            [(ngModel)]="selectedProduct"
+          >
+
+            <option value="">
+              Select Product
+            </option>
+
+            <option
+              *ngFor="let product of products"
+              [value]="product.id"
+            >
+              {{ product.name }}
+              ({{ product.availableQty }}
+              available)
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- SELECTED STOCK -->
+        <div
+          class="selected-stock"
+          *ngIf="selectedProductDetails"
+        >
+
+          <div class="selected-stock-header">
+
+            <div>
+
+              <span class="stock-label">
+                SELECTED PRODUCT
+              </span>
+
+              <h3>
+                {{ selectedProductDetails.name }}
+              </h3>
+
+              <p>
+                Product ID:
+                {{ selectedProductDetails.id }}
+              </p>
+
+            </div>
+
+
+            <div class="available-number">
+
+              <strong>
+                {{ selectedProductDetails.availableQty }}
+              </strong>
+
+              <span>
+                Units Available
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- STOCK PROGRESS -->
+          <div class="stock-progress">
+
+            <div
+              class="stock-progress-fill"
+              [style.width.%]="stockPercentage"
+            ></div>
+
+          </div>
+
+
+          <div class="stock-progress-info">
+
+            <span>
+              Current LCC Stock
+            </span>
+
+            <span>
+              {{ stockPercentage }}% Available
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- QUANTITY -->
+        <div class="form-group">
+
+          <label>
+            Quantity Given
+          </label>
+
+          <input
+            type="number"
+            [(ngModel)]="distributionQuantity"
+            placeholder="Enter quantity"
+            min="1"
+            [max]="availableQuantity"
+          />
+
+
+          <div
+            class="quantity-info"
+            *ngIf="
+              selectedProductDetails &&
+              distributionQuantity
+            "
+          >
+
+            <span>
+              Remaining Balance
+            </span>
+
+            <strong>
+              {{ newBalance }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- RECEIVER -->
+        <div class="form-group">
+
+          <label>
+            Receiver Name
+          </label>
+
+          <input
+            type="text"
+            [(ngModel)]="receiverName"
+            placeholder="Enter receiver name"
+          />
+
+        </div>
+
+
+        <!-- DATE -->
+        <div class="form-group">
+
+          <label>
+            Distribution Date
+          </label>
+
+          <input
+            type="text"
+            [(ngModel)]="distributionDate"
+          />
+
+        </div>
+
+
+        <!-- INFORMATION -->
+        <div class="info-box">
+
+          <span class="info-icon">
+            ℹ
+          </span>
+
+          <p>
+            Product will be deducted from the
+            available LCC stock after assignment.
+            The distribution will be marked as
+            <strong>Assigned</strong>.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="cancel-btn"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="assign-btn"
+          (click)="createDistribution()"
+        >
+          Assign Product
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
 </div>

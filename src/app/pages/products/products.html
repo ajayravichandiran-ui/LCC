@@ -10,6 +10,19 @@
     <div class="header-actions">
       <button
         type="button"
+        class="restock-header-btn"
+        (click)="openReceiveStockModal()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+        Restock
+      </button>
+
+      <button
+        type="button"
         class="add-product-btn"
         (click)="openAddForm()"
       >
@@ -119,17 +132,13 @@
 
           <button
             type="button"
-            class="receive-stock-btn"
-            (click)="openReceiveStock(product)"
-          >
-           Restock
-          </button>
-
-          <button
-            type="button"
             class="edit-product-btn"
             (click)="editProduct(product)"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
             Edit
           </button>
 
@@ -420,65 +429,36 @@
             type="text"
             name="productId"
             [(ngModel)]="productForm.productId"
+            (input)="onProductIdInput()"
             required
             placeholder="Enter product ID"
           />
 
         </div>
 
-        <!-- Product Name -->
+        <!-- Product Name (Free text editable input with datalist suggestions) -->
         <div class="form-field">
 
           <label for="productName">
             Product Name <span>*</span>
           </label>
 
-          <div class="product-name-row">
+          <input
+            id="productName"
+            type="text"
+            name="name"
+            [(ngModel)]="productForm.name"
+            (ngModelChange)="onProductNameChange($event)"
+            list="productNameSuggestions"
+            required
+            placeholder="Enter product name (e.g. Saree, Towel, Soap...)"
+            autocomplete="off"
+          />
 
-            <select
-              id="productName"
-              name="name"
-              [(ngModel)]="productForm.name"
-              (ngModelChange)="onProductNameChange($event)"
-              required
-            >
-              <option value="" disabled>
-                Select a product
-              </option>
+          <!-- <datalist id="productNameSuggestions">
+            <option *ngFor="let item of availableProductNames" [value]="item"></option>
+          </datalist> -->
 
-              <option
-                *ngFor="let item of productNames"
-                [value]="item"
-              >
-                {{ item }}
-              </option>
-            </select>
-
-            <button
-              type="button"
-              class="add-name-btn"
-              (click)="addNewProductName()"
-            >
-               Add New
-            </button>
-
-          </div>
-
-        </div>
-
-        <!-- Existing Product Notice (Prevents Duplication) -->
-        <div class="existing-product-notice" *ngIf="editingId === null && existingMatchedProduct">
-          <span class="notice-icon">ℹ️</span>
-          <div class="notice-body">
-            <strong>"{{ existingMatchedProduct.name }}" already exists in Warehouse ({{ existingMatchedProduct.productId }})</strong>
-            <p>
-              Current available stock: <strong>{{ existingMatchedProduct.quantity }} PCS</strong>.
-              Quantity entered will be added to this existing stock.
-              <span *ngIf="productForm.quantity && (+productForm.quantity) > 0" class="new-stock-preview">
-                (New Total: <strong>{{ existingMatchedProduct.quantity + (+productForm.quantity) }} PCS</strong>)
-              </span>
-            </p>
-          </div>
         </div>
 
         <!-- Quantity -->
@@ -634,32 +614,58 @@
         </button>
       </div>
 
-      <!-- Current Product Details Banner -->
-      <div class="receive-product-banner" *ngIf="selectedReceiveProduct">
-        <div class="receive-banner-item">
-          <span class="banner-label">Product ID</span>
-          <strong class="banner-value">{{ selectedReceiveProduct.productId }}</strong>
-        </div>
-        <div class="receive-banner-item">
-          <span class="banner-label">Product Name</span>
-          <strong class="banner-value">{{ selectedReceiveProduct.name }}</strong>
-        </div>
-        <div class="receive-banner-item">
-          <span class="banner-label">Location</span>
-          <strong class="banner-value">{{ selectedReceiveProduct.location || 'Not assigned' }}</strong>
-        </div>
-        <div class="receive-banner-item">
-          <span class="banner-label">Current Stock</span>
-          <strong class="banner-value stock-highlight">{{ selectedReceiveProduct.quantity }} PCS</strong>
-        </div>
-      </div>
-
       <!-- Receive Stock Form -->
       <form
         class="product-form"
         #receiveNgForm="ngForm"
         (ngSubmit)="confirmReceiveStock()"
       >
+        <!-- Product Select Dropdown -->
+        <div class="form-field">
+          <label for="receiveProductSelect">
+            Select Product <span>*</span>
+          </label>
+          <select
+            id="receiveProductSelect"
+            name="selectedProductId"
+            [(ngModel)]="selectedReceiveProductId"
+            (ngModelChange)="onReceiveProductChange($event)"
+            required
+            class="product-select-dropdown"
+          >
+            <option [ngValue]="null" disabled selected>-- Select an existing product to restock --</option>
+            <option *ngFor="let prod of products" [ngValue]="prod.id">
+              {{ prod.name }} ({{ prod.productId }}) &mdash; Available: {{ prod.quantity }} PCS &bull; {{ prod.location || 'Warehouse' }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Current Product Details Banner (shown when product selected) -->
+        <div class="receive-product-banner" *ngIf="selectedReceiveProduct">
+          <div class="receive-banner-item">
+            <span class="banner-label">Product ID</span>
+            <strong class="banner-value">{{ selectedReceiveProduct.productId }}</strong>
+          </div>
+          <div class="receive-banner-item">
+            <span class="banner-label">Product Name</span>
+            <strong class="banner-value">{{ selectedReceiveProduct.name }}</strong>
+          </div>
+          <div class="receive-banner-item">
+            <span class="banner-label">Location</span>
+            <strong class="banner-value">{{ selectedReceiveProduct.location || 'Not assigned' }}</strong>
+          </div>
+          <div class="receive-banner-item">
+            <span class="banner-label">Current Stock</span>
+            <strong class="banner-value stock-highlight">{{ selectedReceiveProduct.quantity }} PCS</strong>
+          </div>
+        </div>
+
+        <!-- Hint when no product selected yet -->
+        <div class="receive-select-hint" *ngIf="!selectedReceiveProduct">
+          <span class="hint-icon">&#128230;</span>
+          <span>Please select an added product from the dropdown above to view details and restock.</span>
+        </div>
+
         <!-- Additional Pieces Received -->
         <div class="form-field">
           <label for="receivePieces">
@@ -673,6 +679,7 @@
             min="1"
             step="1"
             required
+            [disabled]="!selectedReceiveProduct"
             placeholder="Enter additional quantity received (e.g. 10)"
           />
         </div>
@@ -700,6 +707,7 @@
             name="updatedBy"
             [(ngModel)]="receiveStockForm.updatedBy"
             required
+            [disabled]="!selectedReceiveProduct"
             placeholder="Enter name of person who received / updated the stock"
           />
         </div>
@@ -715,6 +723,7 @@
             name="receiveDate"
             [(ngModel)]="receiveStockForm.date"
             required
+            [disabled]="!selectedReceiveProduct"
           />
         </div>
 
@@ -732,6 +741,7 @@
             type="submit"
             class="save-product-btn"
             [disabled]="
+              !selectedReceiveProduct ||
               receiveNgForm.invalid ||
               !receiveStockForm.quantity ||
               receiveStockForm.quantity < 1 ||

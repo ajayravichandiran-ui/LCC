@@ -1117,5 +1117,33 @@ button {
   .table-container-card {
     border-radius: 14px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media screen and (max-width: 540px) {
+  .reports-page {
+    padding: 14px 12px 28px;
+  }
+
+  .reports-header h1 {
+    font-size: 24px;
+  }
+
+  .reports-header .header-actions {
+    gap: 8px;
+  }
+
+  .action-btn {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 110px;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .reports-table th,
+  .reports-table td {
+    padding: 10px 8px;
+    font-size: 12px;
   }
 }

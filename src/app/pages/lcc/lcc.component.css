@@ -799,11 +799,16 @@ button {
 
   .header-actions {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
+  .switch-stock-btn,
   .reset-data-btn {
     width: 100%;
     justify-content: center;
+    text-align: center;
   }
 
   .lcc-register {
@@ -829,12 +834,57 @@ button {
     gap: 16px;
   }
 
+  .modal-overlay {
+    padding: 12px;
+  }
+
   .modal-dialog,
   .transfer-modal,
-  .edit-modal {
-    width: 95% !important;
+  .edit-modal,
+  .lcc-modal {
+    width: 100% !important;
     max-width: 100% !important;
-    margin: 10px auto;
-    padding: 20px 16px;
+    margin: auto;
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    max-height: 92vh !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .lcc-page {
+    padding: 14px 12px 28px;
+  }
+
+  .lcc-header h1 {
+    font-size: 26px;
+  }
+
+  .lcc-register {
+    padding: 14px 12px;
+  }
+
+  .card-actions {
+    padding: 12px 14px 16px;
+    gap: 8px;
+  }
+
+  .card-actions button {
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+    justify-content: center;
+    padding: 9px 8px;
+    font-size: 12px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .form-actions button {
+    width: 100%;
+    justify-content: center;
   }
 }
