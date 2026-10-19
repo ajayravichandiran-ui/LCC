@@ -92,6 +92,7 @@
   gap: 16px;
   box-sizing: border-box;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  background: linear-gradient(180deg, #fff8dc 0%, #fffdf8 45px, #ffffff 90px);
 }
 
 .stat-icon {
@@ -107,28 +108,34 @@
 
 .stat-icon.yellow {
   background: #fff8cc;
+  
 }
 
 .stat-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  
+  
 }
 
 .stat-content span {
   font-size: 13px;
   color: #777777;
+  
 }
 
 .stat-content strong {
   font-size: 25px;
   color: #252525;
   line-height: 1.1;
+  
 }
 
 .stat-content small {
   font-size: 12px;
   color: #999999;
+  
 }
 
 
@@ -618,6 +625,7 @@ td strong {
 
   .stat-card {
     padding: 16px;
+    
   }
 
   .modal {

@@ -431,7 +431,7 @@
             [(ngModel)]="productForm.productId"
             (input)="onProductIdInput()"
             required
-            placeholder="Enter product ID"
+            placeholder="Enter Product ID is Auto-generated (e.g PR_101)"
           />
 
         </div>
@@ -449,15 +449,11 @@
             name="name"
             [(ngModel)]="productForm.name"
             (ngModelChange)="onProductNameChange($event)"
-            list="productNameSuggestions"
+            (input)="onProductNameChange(productForm.name)"
             required
             placeholder="Enter product name (e.g. Saree, Towel, Soap...)"
             autocomplete="off"
           />
-
-          <!-- <datalist id="productNameSuggestions">
-            <option *ngFor="let item of availableProductNames" [value]="item"></option>
-          </datalist> -->
 
         </div>
 

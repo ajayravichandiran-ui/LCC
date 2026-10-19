@@ -280,21 +280,51 @@ export class Products {
   }
 
   getPrefixFromName(name: string): string {
-    if (!name) {
+    if (!name || !name.trim()) {
       return 'PR';
     }
-    // Extract letters only to properly handle names like "T-Shirt" -> "TS", "Saree" -> "SA"
-    const lettersOnly = name.replace(/[^a-zA-Z]/g, '');
+    const clean = name.trim();
+    // Multi-word / hyphenated handling: e.g. "T-Shirt" -> "TS", "T Shirt" -> "TS"
+    const words = clean.split(/[\s\-_]+/);
+    if (words.length >= 2 && words[0].length >= 1 && words[1].length >= 1) {
+      const p1 = words[0].charAt(0).toUpperCase();
+      const p2 = words[1].charAt(0).toUpperCase();
+      if (/[A-Z]/.test(p1) && /[A-Z]/.test(p2)) {
+        return `${p1}${p2}`;
+      }
+    }
+    // Extract letters only: e.g. "Soap" -> "SO", "Saree" -> "SA", "Oil" -> "OI", "Towel" -> "TO"
+    const lettersOnly = clean.replace(/[^a-zA-Z]/g, '');
     if (lettersOnly.length >= 2) {
       return lettersOnly.slice(0, 2).toUpperCase();
     }
-    const clean = name.trim().toUpperCase();
-    return clean ? (clean + 'XX').slice(0, 2) : 'PR';
+    if (lettersOnly.length === 1) {
+      return (lettersOnly + 'X').toUpperCase();
+    }
+    return 'PR';
+  }
+
+  format3DigitNumber(num: number): string {
+    if (isNaN(num) || num < 1) return '101';
+    return num < 1000 ? String(num).padStart(3, '0') : String(num);
+  }
+
+  generateProductIdForName(name: string): string {
+    const prefix = this.getPrefixFromName(name);
+
+    // Extract any existing 3-digit number already in the form, or use nextProductId
+    const currentMatch = (this.productForm?.productId || '').match(/\d+/);
+    let targetNum = currentMatch ? parseInt(currentMatch[0], 10) : (this.nextProductId || 101);
+
+    if (isNaN(targetNum) || targetNum < 1) {
+      targetNum = this.nextProductId || 101;
+    }
+
+    return `${prefix}_${this.format3DigitNumber(targetNum)}`;
   }
 
   generateProductId(name: string = ''): string {
-    const prefix = this.getPrefixFromName(name);
-    return `${prefix}_${this.nextProductId}`;
+    return this.generateProductIdForName(name);
   }
 
   get availableProductNames(): string[] {
@@ -314,18 +344,14 @@ export class Products {
   }
 
   onProductNameChange(name: string): void {
-    if (!name) {
+    if (!name || !name.trim()) {
       return;
     }
-    // Only auto-generate prefix if adding a new product and user hasn't typed a custom Product ID
-    if (this.editingId === null && !this.isCustomProductId) {
-      const prefix = this.getPrefixFromName(name);
-      this.productForm.productId = `${prefix}_${this.nextProductId}`;
-    }
+    this.productForm.productId = this.generateProductIdForName(name);
   }
 
   onProductIdInput(): void {
-    this.isCustomProductId = true;
+    // Allows user to edit Product ID directly if desired
   }
 
   // ==================== TRANSFER FORM ====================
@@ -825,7 +851,7 @@ export class Products {
 
     this.receiveStockForm = {
       quantity: null,
-      updatedBy: this.selectedReceiveProduct?.updatedBy || this.selectedReceiveProduct?.addedBy || '',
+      updatedBy: '',
       date: this.getTodayDate()
     };
     this.showReceiveStockModal = true;
@@ -838,9 +864,6 @@ export class Products {
     }
     const found = this.products.find(p => p.id === Number(productId)) || null;
     this.selectedReceiveProduct = found;
-    if (found) {
-      this.receiveStockForm.updatedBy = found.updatedBy || found.addedBy || '';
-    }
   }
 
   openReceiveStock(product?: Product): void {
