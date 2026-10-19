@@ -143,7 +143,197 @@
       </div>
     </ng-template>
 
+    <!-- Move to Distribution (Floating Button) -->
+    <div class="switch-distribution-container">
+      <button
+        type="button"
+        class="switch-distribution-btn"
+        (click)="openDistributionTransferModal()"
+      >
+        <span class="btn-icon">⇄</span>
+        <span>Move to Distribution</span>
+        <span class="btn-arrow">&rarr;</span>
+      </button>
+    </div>
+
   </section>
+
+  <!-- Switch Stock to Distribution Modal -->
+  <div
+    class="modal-overlay transfer-overlay"
+    *ngIf="showDistributionTransferModal"
+    (click)="closeDistributionTransferModal()"
+  >
+    <section
+      class="transfer-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="distTransferTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Modal Header -->
+      <div class="transfer-header">
+        <div>
+          <h2 id="distTransferTitle">Switch Stock to Distribution</h2>
+          <p>Transfer products from LCC to Distribution inventory.</p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close-btn"
+          aria-label="Close transfer form"
+          (click)="closeDistributionTransferModal()"
+        >
+          &times;
+        </button>
+      </div>
+
+      <!-- Transfer Form -->
+      <form
+        class="transfer-form"
+        #distTransferNgForm="ngForm"
+        (ngSubmit)="confirmDistributionTransfer()"
+      >
+        <!-- Product ID Dropdown -->
+        <div class="form-field">
+          <label for="distTransferProductId">
+            Product ID <span>*</span>
+          </label>
+
+          <select
+            id="distTransferProductId"
+            name="distTransferProductId"
+            [(ngModel)]="distTransferForm.selectedItemId"
+            required
+          >
+            <option value="" disabled>Select Product ID</option>
+            <option
+              *ngFor="let item of availableLccItems"
+              [value]="item.id"
+            >
+              {{ (item.productId || 'N/A') + " - " + item.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Product Name Dropdown -->
+        <div class="form-field">
+          <label for="distTransferProduct">
+            Product Name <span>*</span>
+          </label>
+
+          <select
+            id="distTransferProduct"
+            name="distTransferProduct"
+            [(ngModel)]="distTransferForm.selectedItemId"
+            required
+          >
+            <option value="" disabled>Select Product Name</option>
+            <option
+              *ngFor="let item of availableLccItems"
+              [value]="item.id"
+            >
+              {{ item.name + (item.productId ? ' - ' + item.productId : '') }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Available Stock Banner -->
+        <div class="available-stock-banner" *ngIf="selectedDistTransferProduct">
+          <div class="stock-info-item">
+            <span class="stock-info-label">Available LCC Stock</span>
+            <strong class="stock-info-value">{{ remainingDistTransferStock }} PCS</strong>
+          </div>
+          <div class="stock-info-item">
+            <span class="stock-info-label">Warehouse / LCC Location</span>
+            <strong class="stock-info-value">{{ selectedDistTransferProduct.location || 'LCC Inventory' }}</strong>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="form-field">
+          <label for="distTransferDate">Date <span>*</span></label>
+          <input
+            id="distTransferDate"
+            type="date"
+            name="date"
+            [(ngModel)]="distTransferForm.date"
+            required
+          />
+        </div>
+
+        <!-- Transferred By / Volunteer -->
+        <div class="form-field">
+          <label for="distTransferredBy">Transferred By / Volunteer <span>*</span></label>
+          <input
+            id="distTransferredBy"
+            type="text"
+            name="transferredBy"
+            [(ngModel)]="distTransferForm.transferredBy"
+            placeholder="Enter volunteer or staff name (e.g., Madhan)"
+            required
+          />
+        </div>
+
+        <!-- Receiver / Destination -->
+        <div class="form-field">
+          <label for="distReceiver">Receiver / Destination <span>*</span></label>
+          <input
+            id="distReceiver"
+            type="text"
+            name="receiver"
+            [(ngModel)]="distTransferForm.receiver"
+            placeholder="Enter receiver name or distribution center"
+            required
+          />
+        </div>
+
+        <!-- Quantity -->
+        <div class="form-field">
+          <label for="distTransferQuantity">Quantity (PCS) <span>*</span></label>
+          <input
+            id="distTransferQuantity"
+            type="number"
+            name="quantity"
+            [(ngModel)]="distTransferForm.quantity"
+            min="1"
+            [max]="selectedDistTransferProduct?.quantity ?? 1"
+            step="1"
+            placeholder="Enter quantity"
+            required
+          />
+          <small class="field-help" *ngIf="selectedDistTransferProduct">
+            Maximum available to transfer: {{ selectedDistTransferProduct.quantity }} PCS
+          </small>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeDistributionTransferModal()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="confirm-transfer-btn"
+            [disabled]="
+              distTransferNgForm.invalid ||
+              !selectedDistTransferProduct ||
+              !distTransferForm.quantity ||
+              distTransferForm.quantity < 1 ||
+              distTransferForm.quantity > (selectedDistTransferProduct?.quantity ?? 0)
+            "
+          >
+            Confirm Transfer
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
 
   <!-- Edit LCC Item Modal -->
   <div

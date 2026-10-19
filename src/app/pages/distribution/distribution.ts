@@ -1,349 +1,805 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
-interface DistributionRecord {
-  id: string;
-  product: string;
-  quantity: number;
-  volunteer: string;
-  receiver: string;
+import {
+  LccService,
+  LccTransferItem
+} from '../../services/lcc.service';
+import {
+  DistributionService,
+  DistributionRecord
+} from '../../services/distribution.service';
+import { ReportsService } from '../../services/reports.service';
+
+
+// =====================================================
+// Distribution Product
+// =====================================================
+
+interface DistributionProduct {
+  id: number;
+  productId: string;
+  name: string;
+  availableQty: number;
+  location: string;
   date: string;
-  status: string;
+  switchedBy: string;
+  createdAt: string;
 }
+
+
+
 
 @Component({
   selector: 'app-distribution',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
+
   templateUrl: './distribution.html',
   styleUrl: './distribution.css'
 })
-export class Distribution {
+export class Distribution implements OnInit, OnDestroy {
+  private subscription?: Subscription;
+
+
+  // =====================================================
+  // MODAL
+  // =====================================================
 
   showModal = false;
+
+
+  // =====================================================
+  // SEARCH
+  // =====================================================
+
   searchText = '';
 
+
+  // =====================================================
+  // FORM DATA
+  // =====================================================
+
   selectedVolunteer = '';
+
   selectedProduct = '';
+
   receiverName = '';
+
   distributionQuantity: number | null = null;
+
   distributionDate = this.getToday();
 
-  products = [
-    {
-      id: 'SAR001',
-      name: 'Saree',
-      availableQty: 250,
-      totalQty: 250
-    },
-    {
-      id: 'DHO002',
-      name: 'Dhoti',
-      availableQty: 180,
-      totalQty: 180
-    },
-    {
-      id: 'TOW003',
-      name: 'Towel',
-      availableQty: 300,
-      totalQty: 300
-    },
-    {
-      id: 'SHI004',
-      name: 'Shirt',
-      availableQty: 150,
-      totalQty: 150
-    },
-    {
-      id: 'PAN005',
-      name: 'Pant',
-      availableQty: 120,
-      totalQty: 120
-    },
-    {
-      id: 'CHU006',
-      name: 'Churidar',
-      availableQty: 100,
-      totalQty: 100
-    },
-    {
-      id: 'DRE007',
-      name: 'Dress',
-      availableQty: 200,
-      totalQty: 200
-    },
-    {
-      id: 'BED008',
-      name: 'Bedsheet',
-      availableQty: 175,
-      totalQty: 175
-    }
-  ];
 
-  distributions: DistributionRecord[] = [
-    {
-      id: 'DIST-0001',
-      product: 'Saree',
-      quantity: 20,
-      volunteer: 'Arun',
-      receiver: 'Arun Kumar',
-      date: '14-10-2026',
-      status: 'Assigned'
-    },
-    {
-      id: 'DIST-0002',
-      product: 'Dhoti',
-      quantity: 15,
-      volunteer: 'Priya',
-      receiver: 'Ravi',
-      date: '14-10-2026',
-      status: 'Assigned'
-    },
-    {
-      id: 'DIST-0003',
-      product: 'Towel',
-      quantity: 25,
-      volunteer: 'Kumar',
-      receiver: 'Kumar',
-      date: '13-10-2026',
-      status: 'Assigned'
-    },
-    {
-      id: 'DIST-0004',
-      product: 'Shirt',
-      quantity: 10,
-      volunteer: 'Manoj',
-      receiver: 'Priya',
-      date: '13-10-2026',
-      status: 'Assigned'
-    },
-    {
-      id: 'DIST-0005',
-      product: 'Churidar',
-      quantity: 8,
-      volunteer: 'Surya',
-      receiver: 'Manoj',
-      date: '12-10-2026',
-      status: 'Assigned'
+  // =====================================================
+  // PRODUCTS
+  // Products come from LCC Service
+  // =====================================================
+
+  products: DistributionProduct[] = [];
+
+
+  // =====================================================
+  // LOADING / ERROR
+  // =====================================================
+
+  loadingProducts = false;
+
+  productError = '';
+
+
+  // =====================================================
+  // DISTRIBUTION HISTORY
+  // =====================================================
+
+  distributions: DistributionRecord[] = [];
+
+
+  // =====================================================
+  // CONSTRUCTOR
+  // =====================================================
+
+  constructor(
+    private lccService: LccService,
+    private distributionService: DistributionService,
+    private reportsService: ReportsService
+  ) {}
+
+
+  // =====================================================
+  // ON INIT
+  // =====================================================
+
+  ngOnInit(): void {
+
+    this.loadLccProducts();
+
+    this.subscription = this.distributionService.records$.subscribe(records => {
+      this.distributions = records;
+    });
+
+  }
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
+  }
+
+
+  // =====================================================
+  // LOAD PRODUCTS FROM LCC
+  // =====================================================
+
+  loadLccProducts(): void {
+
+    this.loadingProducts = true;
+
+    this.productError = '';
+
+
+    try {
+
+      /*
+       * Your LccService is using localStorage.
+       *
+       * getItems() directly returns:
+       *
+       * LccTransferItem[]
+       */
+
+      const lccItems =
+        this.lccService.getItems();
+
+
+      /*
+       * Only products with quantity > 0
+       * will be shown in Distribution.
+       */
+
+      this.products = lccItems
+
+        .filter(
+          item =>
+            Number(item.quantity) > 0
+        )
+
+        .map(
+          item => ({
+
+            id: item.id,
+
+            productId:
+              item.productId,
+
+            name:
+              item.name,
+
+            availableQty:
+              Number(item.quantity) || 0,
+
+            location:
+              item.location ||
+              'LCC Building',
+
+            date:
+              item.date || '',
+
+            switchedBy:
+              item.switchedBy || '',
+
+            createdAt:
+              item.createdAt || ''
+
+          })
+        );
+
+
+      this.loadingProducts = false;
+
     }
-  ];
+    catch (error) {
+
+      console.error(
+        'Failed to load LCC products:',
+        error
+      );
+
+
+      this.products = [];
+
+
+      this.productError =
+        'Unable to load products from LCC.';
+
+
+      this.loadingProducts = false;
+
+    }
+
+  }
+
+
+  // =====================================================
+  // OPEN DISTRIBUTION MODAL
+  // =====================================================
 
   openDistributionModal(): void {
+    this.loadLccProducts();
     this.resetForm();
     this.showModal = true;
   }
 
+
+  // =====================================================
+  // CLOSE MODAL
+  // =====================================================
+
   closeModal(): void {
+
     this.showModal = false;
+
   }
+
+
+  // =====================================================
+  // RESET FORM
+  // =====================================================
 
   resetForm(): void {
     this.selectedVolunteer = '';
-    this.selectedProduct = '';
+    this.selectedProduct = this.products.length > 0 ? String(this.products[0].id) : '';
     this.receiverName = '';
     this.distributionQuantity = null;
     this.distributionDate = this.getToday();
   }
 
-  get selectedProductDetails() {
+
+  // =====================================================
+  // GET SELECTED PRODUCT
+  // =====================================================
+
+  get selectedProductDetails():
+    DistributionProduct | undefined {
+
     return this.products.find(
-      product => product.id === this.selectedProduct
+      product =>
+        String(product.id) ===
+        String(this.selectedProduct)
     );
+
   }
+
+
+  // =====================================================
+  // GET AVAILABLE QUANTITY
+  // =====================================================
 
   get availableQuantity(): number {
-    return this.selectedProductDetails?.availableQty ?? 0;
+
+    return (
+      this.selectedProductDetails
+        ?.availableQty ?? 0
+    );
+
   }
 
+
+  // =====================================================
+  // GET NEW BALANCE
+  // =====================================================
+
   get newBalance(): number {
-    if (!this.selectedProductDetails) {
+
+    const product =
+      this.selectedProductDetails;
+
+
+    if (!product) {
+
       return 0;
+
     }
+
+
+    const quantity =
+      Number(
+        this.distributionQuantity
+      ) || 0;
+
 
     return Math.max(
       0,
-      this.availableQuantity -
-        (this.distributionQuantity ?? 0)
+      product.availableQty - quantity
     );
+
   }
+
+
+  // =====================================================
+  // STOCK PERCENTAGE
+  // =====================================================
 
   get stockPercentage(): number {
-    if (!this.selectedProductDetails) {
+
+    const product =
+      this.selectedProductDetails;
+
+
+    if (!product) {
+
       return 0;
+
     }
 
-    const percentage =
-      (this.selectedProductDetails.availableQty /
-        this.selectedProductDetails.totalQty) *
-      100;
 
-    return Math.round(percentage);
+    /*
+     * Your current LccTransferItem does not
+     * contain totalQty.
+     *
+     * Therefore we simply show 100%
+     * for currently available stock.
+     */
+
+    return product.availableQty > 0
+      ? 100
+      : 0;
+
   }
+
+
+  // =====================================================
+  // TOTAL DISTRIBUTIONS
+  // =====================================================
 
   get totalDistributions(): number {
+
     return this.distributions.length;
+
   }
+
+
+  // =====================================================
+  // TOTAL UNITS DISTRIBUTED
+  // =====================================================
 
   get lccToDistribution(): number {
+
     return this.distributions.reduce(
-      (total, distribution) =>
-        total + distribution.quantity,
+      (
+        total,
+        distribution
+      ) => {
+
+        return (
+          total +
+          Number(
+            distribution.quantity
+          )
+        );
+
+      },
       0
     );
+
   }
 
+
+  // =====================================================
+  // TODAY DISTRIBUTION
+  // =====================================================
+
   get todayDistribution(): number {
-    const today = this.getToday();
+
+    const today =
+      this.getToday();
+
 
     return this.distributions
+
       .filter(
         distribution =>
           distribution.date === today
       )
+
       .reduce(
-        (total, distribution) =>
-          total + distribution.quantity,
+        (
+          total,
+          distribution
+        ) => {
+
+          return (
+            total +
+            Number(
+              distribution.quantity
+            )
+          );
+
+        },
         0
       );
+
   }
 
-  get filteredDistributions(): DistributionRecord[] {
+
+  // =====================================================
+  // FILTER DISTRIBUTION HISTORY
+  // =====================================================
+
+  get filteredDistributions():
+    DistributionRecord[] {
+
     const search =
       this.searchText
         .toLowerCase()
         .trim();
 
+
     if (!search) {
+
       return this.distributions;
+
     }
+
 
     return this.distributions.filter(
       distribution =>
+
         distribution.id
           .toLowerCase()
-          .includes(search) ||
+          .includes(search)
+
+        ||
 
         distribution.product
           .toLowerCase()
-          .includes(search) ||
+          .includes(search)
+
+        ||
 
         distribution.volunteer
           .toLowerCase()
-          .includes(search) ||
+          .includes(search)
+
+        ||
 
         distribution.receiver
           .toLowerCase()
-          .includes(search) ||
+          .includes(search)
+
+        ||
 
         distribution.date
           .toLowerCase()
-          .includes(search) ||
+          .includes(search)
+
+        ||
 
         distribution.status
           .toLowerCase()
           .includes(search)
+
+        ||
+
+        distribution.location
+          .toLowerCase()
+          .includes(search)
+
     );
+
   }
+
+
+  // =====================================================
+  // CREATE DISTRIBUTION
+  // =====================================================
 
   createDistribution(): void {
 
-    if (!this.selectedVolunteer.trim()) {
-      alert('Please enter volunteer name.');
+
+    // ---------------------------------------------------
+    // Validate Volunteer
+    // ---------------------------------------------------
+
+    if (
+      !this.selectedVolunteer.trim()
+    ) {
+
+      alert(
+        'Please enter volunteer name.'
+      );
+
       return;
+
     }
+
+
+    // ---------------------------------------------------
+    // Validate Product
+    // ---------------------------------------------------
 
     if (!this.selectedProduct) {
-      alert('Please select a product.');
+
+      alert(
+        'Please select a product from LCC.'
+      );
+
       return;
+
     }
 
+
+    // ---------------------------------------------------
+    // Validate Quantity
+    // ---------------------------------------------------
+
     if (
-      !this.distributionQuantity ||
-      this.distributionQuantity <= 0
+      this.distributionQuantity === null
+      ||
+      Number(
+        this.distributionQuantity
+      ) <= 0
     ) {
-      alert('Please enter a valid quantity.');
+
+      alert(
+        'Please enter a valid quantity.'
+      );
+
       return;
+
     }
 
+
+    const quantity =
+      Number(
+        this.distributionQuantity
+      );
+
+
+    // ---------------------------------------------------
+    // Check Available Quantity
+    // ---------------------------------------------------
+
     if (
-      this.distributionQuantity >
+      quantity >
       this.availableQuantity
     ) {
+
       alert(
-        `Only ${this.availableQuantity} units are available.`
+        `Only ${this.availableQuantity} units are available in LCC.`
       );
+
       return;
+
     }
 
-    if (!this.receiverName.trim()) {
-      alert('Please enter receiver name.');
+
+    // ---------------------------------------------------
+    // Validate Receiver
+    // ---------------------------------------------------
+
+    if (
+      !this.receiverName.trim()
+    ) {
+
+      alert(
+        'Please enter receiver name.'
+      );
+
       return;
+
     }
+
+
+    // ---------------------------------------------------
+    // Validate Date
+    // ---------------------------------------------------
 
     if (!this.distributionDate) {
-      alert('Please select distribution date.');
+
+      alert(
+        'Please select distribution date.'
+      );
+
       return;
+
     }
 
-    const product = this.products.find(
-      item =>
-        item.id === this.selectedProduct
-    );
+
+    // ---------------------------------------------------
+    // Get Selected Product
+    // ---------------------------------------------------
+
+    const product =
+      this.selectedProductDetails;
+
 
     if (!product) {
-      alert('Product not found.');
+
+      alert(
+        'Selected product was not found.'
+      );
+
       return;
+
     }
 
-    product.availableQty -=
-      this.distributionQuantity;
 
-    const newId =
-      `DIST-${String(
-        this.distributions.length + 1
-      ).padStart(4, '0')}`;
+    // ---------------------------------------------------
+    // Calculate New LCC Balance
+    // ---------------------------------------------------
 
-    const newDistribution: DistributionRecord = {
-      id: newId,
-      product: product.name,
+    const newBalance =
+      product.availableQty -
+      quantity;
+
+
+    // ---------------------------------------------------
+    // Create Updated LCC Item
+    // ---------------------------------------------------
+
+    const updatedLccItem:
+      LccTransferItem = {
+
+      id:
+        product.id,
+
+      productId:
+        product.productId,
+
+      name:
+        product.name,
+
       quantity:
-        this.distributionQuantity,
-      volunteer:
-        this.selectedVolunteer,
-      receiver:
-        this.receiverName,
+        newBalance,
+
       date:
-        this.distributionDate,
-      status: 'Assigned'
+        product.date,
+
+      switchedBy:
+        product.switchedBy,
+
+      location:
+        product.location,
+
+      createdAt:
+        product.createdAt
+
     };
 
-    this.distributions.unshift(
-      newDistribution
-    );
 
-    alert(
-      'Product assigned successfully.'
-    );
+    // ---------------------------------------------------
+    // Update LCC Stock
+    // ---------------------------------------------------
 
-    this.closeModal();
-    this.resetForm();
+    try {
+      if (newBalance <= 0) {
+        this.lccService.deleteTransfer(product.id);
+      } else {
+        this.lccService.updateItem(updatedLccItem);
+      }
+
+
+      // -------------------------------------------------
+      // Create Distribution ID
+      // -------------------------------------------------
+
+      const newId =
+        `DIST-${String(
+          this.distributions.length + 1
+        ).padStart(
+          4,
+          '0'
+        )}`;
+
+
+      // -------------------------------------------------
+      // Create Distribution Record
+      // -------------------------------------------------
+
+      const newDistribution:
+        DistributionRecord = {
+
+        id:
+          newId,
+
+        product:
+          product.name,
+
+        quantity:
+          quantity,
+
+        volunteer:
+          this.selectedVolunteer.trim(),
+
+        receiver:
+          this.receiverName.trim(),
+
+        date:
+          this.distributionDate,
+
+        status:
+          'Assigned',
+
+        location:
+          product.location
+
+      };
+
+
+      // -------------------------------------------------
+      // Add Distribution History
+      // -------------------------------------------------
+
+      this.distributionService.addDistribution(
+        newDistribution
+      );
+
+
+      this.reportsService.recordEntry({
+        productId: product.productId || '',
+        productName: product.name,
+        eventType: 'STOCK_TRANSFERRED',
+        eventTitle: 'Transferred to Distribution',
+        quantityChange: -quantity,
+        previousStock: product.availableQty,
+        newStock: Math.max(0, newBalance),
+        location: product.location || 'LCC',
+        updatedBy: this.selectedVolunteer.trim(),
+        remarks: `Assigned to ${this.receiverName.trim()}`,
+        date: this.distributionDate
+      });
+
+      // Reload Products
+      this.loadLccProducts();
+
+      // Close Modal
+      this.closeModal();
+
+      // Reset Form
+      this.resetForm();
+      // -------------------------------------------------
+
+      this.closeModal();
+
+
+      // -------------------------------------------------
+      // Reset Form
+      // -------------------------------------------------
+
+      this.resetForm();
+
+    }
+    catch (error) {
+
+      console.error(
+        'Failed to update LCC stock:',
+        error
+      );
+
+
+      alert(
+        'Failed to update LCC stock. Distribution was not created.'
+      );
+
+    }
+
   }
+
+
+  // =====================================================
+  // GET TODAY
+  // =====================================================
 
   getToday(): string {
     const today = new Date();
-
-    const day = String(
-      today.getDate()
-    ).padStart(2, '0');
-
-    const month = String(
-      today.getMonth() + 1
-    ).padStart(2, '0');
-
-    const year =
-      today.getFullYear();
-
-    return `${day}-${month}-${year}`;
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    return `${year}-${month}-${day}`;
   }
 }

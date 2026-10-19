@@ -887,4 +887,312 @@ button {
     width: 100%;
     justify-content: center;
   }
+
+  .switch-distribution-container {
+    right: 14px;
+    bottom: 16px;
+  }
+
+  .switch-distribution-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 900px) {
+  .switch-distribution-container {
+    right: 18px;
+    bottom: 20px;
+  }
+
+  .switch-distribution-btn {
+    width: auto !important;
+    min-height: 44px;
+    padding: 10px 20px;
+    font-size: 13.5px;
+  }
+}
+
+/* ==================== SWITCH / MOVE TO DISTRIBUTION (FLOATING BUTTON) ==================== */
+
+.switch-distribution-container {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 990;
+  margin: 0;
+  padding: 0;
+  border: none;
+  pointer-events: none;
+}
+
+.switch-distribution-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 1.5px solid #d4a500;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #fff9e6 0%, #ffefb8 45%, #ffd54f 100%);
+  color: #2b2202;
+  font-size: 14.5px;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(217, 165, 0, 0.38), 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.switch-distribution-btn:hover {
+  background: linear-gradient(135deg, #fff5cc 0%, #ffe885 45%, #ffca28 100%);
+  border-color: #bf9000;
+  box-shadow: 0 12px 30px rgba(217, 165, 0, 0.48), 0 4px 12px rgba(0, 0, 0, 0.14);
+  transform: translateY(-3px) scale(1.02);
+}
+
+.switch-distribution-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 12px rgba(217, 165, 0, 0.3);
+}
+
+.switch-distribution-btn .btn-icon {
+  font-size: 17px;
+  display: inline-block;
+}
+
+.switch-distribution-btn .btn-arrow {
+  font-size: 16px;
+  transition: transform 0.2s ease;
+}
+
+.switch-distribution-btn:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+/* ==================== TRANSFER TO DISTRIBUTION MODAL ==================== */
+
+.transfer-overlay {
+  background: rgba(45, 36, 12, 0.38);
+  backdrop-filter: blur(4px);
+}
+
+.transfer-modal {
+  width: min(100%, 650px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 30px;
+  border: 1.5px solid #fae8a4;
+  border-radius: 22px;
+  background: #ffffff;
+  color: #263238;
+  box-shadow: 0 24px 70px rgba(184, 134, 11, 0.16), 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.transfer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f9f0d4;
+}
+
+.transfer-header h2 {
+  margin: 0 0 6px;
+  color: #263442;
+  font-size: 24px;
+  font-weight: 750;
+}
+
+.transfer-header p {
+  margin: 0;
+  color: #7b8490;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.transfer-header .modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: 1.5px solid #f2dfa0;
+  border-radius: 10px;
+  background: #fffdf5;
+  color: #5a4b16;
+  font-size: 24px;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.transfer-header .modal-close-btn:hover {
+  border-color: #e5b300;
+  background: #ffeb99;
+  color: #263238;
+}
+
+.transfer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.transfer-modal .form-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.transfer-modal .form-field label span {
+  color: #c53636;
+}
+
+.transfer-modal .form-field select,
+.transfer-modal .form-field input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1.5px solid #ebdca8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #293541;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transfer-modal .form-field select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.transfer-modal .form-field select:hover,
+.transfer-modal .form-field input:hover {
+  border-color: #dfb83b;
+  background: #fffef8;
+}
+
+.transfer-modal .form-field select:focus,
+.transfer-modal .form-field input:focus {
+  border-color: #e5a900;
+  background: #fffdf2;
+  box-shadow: 0 0 0 3.5px rgba(255, 202, 40, 0.25);
+}
+
+.transfer-modal .form-field select option {
+  padding: 10px;
+  background: #ffffff;
+  color: #293541;
+}
+
+.transfer-modal .form-field select option:disabled {
+  color: #a4abb5;
+  background: #faf8f2;
+}
+
+.available-stock-banner {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1.5px solid #f6e3a4;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fffdf2 0%, #fff9e6 100%);
+}
+
+.stock-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock-info-label {
+  color: #8c7830;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stock-info-value {
+  color: #263442;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.field-help {
+  display: block;
+  margin-top: 5px;
+  color: #8c7830;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.transfer-modal .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 18px;
+  border-top: 1px solid #f7efd7;
+}
+
+.transfer-modal .cancel-btn {
+  min-height: 44px;
+  padding: 11px 22px;
+  border: 1.5px solid #ebdca8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #5a4b16;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.transfer-modal .cancel-btn:hover {
+  background: #fff8e1;
+  border-color: #dfb83b;
+  color: #3b2f06;
+}
+
+.confirm-transfer-btn {
+  min-height: 44px;
+  padding: 11px 24px;
+  border: 1.5px solid #e5b800;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffd740 0%, #ffca28 100%);
+  color: #263238;
+  font-size: 13.5px;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(255, 202, 40, 0.32);
+  transition: all 0.2s ease;
+}
+
+.confirm-transfer-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffca28 0%, #f2b900 100%);
+  border-color: #cc9600;
+  box-shadow: 0 6px 18px rgba(242, 185, 0, 0.45);
+  transform: translateY(-1px);
+}
+
+.confirm-transfer-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }

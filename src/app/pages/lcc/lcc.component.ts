@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { LccService, LccTransferItem } from '../../services/lcc.service';
 import { ReportsService } from '../../services/reports.service';
+import { DistributionService } from '../../services/distribution.service';
 
 export interface AppModalDialog {
   show: boolean;
@@ -40,6 +41,7 @@ export class LccComponent implements OnInit, OnDestroy {
   constructor(
     private lccService: LccService,
     private reportsService: ReportsService,
+    private distributionService: DistributionService,
     private router: Router
   ) {}
 
@@ -243,6 +245,140 @@ export class LccComponent implements OnInit, OnDestroy {
       'error'
     );
   }
+  // ==================== TRANSFER TO DISTRIBUTION ====================
+  showDistributionTransferModal = false;
+  distTransferForm = {
+    selectedItemId: '' as string | number,
+    date: this.getTodayDate(),
+    transferredBy: '',
+    receiver: '',
+    quantity: null as number | null
+  };
+
+  get availableLccItems(): LccTransferItem[] {
+    return this.items.filter(item => (Number(item.quantity) || 0) > 0);
+  }
+
+  get selectedDistTransferProduct(): LccTransferItem | undefined {
+    if (!this.distTransferForm.selectedItemId) {
+      return undefined;
+    }
+    return this.items.find(item => String(item.id) === String(this.distTransferForm.selectedItemId));
+  }
+
+  get remainingDistTransferStock(): number {
+    const product = this.selectedDistTransferProduct;
+    if (!product) return 0;
+    const qty = Number(this.distTransferForm.quantity) || 0;
+    const remaining = product.quantity - qty;
+    return remaining >= 0 ? remaining : 0;
+  }
+
+  getTodayDate(): string {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }
+
+  private formatDateForDistribution(dateStr: string): string {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateStr;
+  }
+
+  openDistributionTransferModal(): void {
+    const available = this.availableLccItems;
+    this.distTransferForm = {
+      selectedItemId: available.length > 0 ? available[0].id : '',
+      date: this.getTodayDate(),
+      transferredBy: '',
+      receiver: '',
+      quantity: null
+    };
+    this.showDistributionTransferModal = true;
+  }
+
+  closeDistributionTransferModal(): void {
+    this.showDistributionTransferModal = false;
+  }
+
+  confirmDistributionTransfer(): void {
+    const product = this.selectedDistTransferProduct;
+    const quantity = Number(this.distTransferForm.quantity);
+    const transferredBy = this.distTransferForm.transferredBy.trim();
+    const receiver = this.distTransferForm.receiver.trim();
+    const transferDate = this.distTransferForm.date;
+
+    if (!product) {
+      this.showWarning('Select Product', 'Please select a product from LCC inventory to transfer.');
+      return;
+    }
+
+    if (!transferDate || !transferredBy || !receiver || !this.distTransferForm.quantity) {
+      this.showWarning('Required Fields', 'Please complete all required fields.');
+      return;
+    }
+
+    if (
+      !Number.isSafeInteger(quantity) ||
+      quantity < 1 ||
+      quantity > product.quantity
+    ) {
+      this.showWarning('Invalid Quantity', `Enter a valid quantity within available LCC stock (${product.quantity} PCS).`);
+      return;
+    }
+
+    const remainingQty = product.quantity - quantity;
+    if (remainingQty <= 0) {
+      this.lccService.deleteTransfer(product.id);
+    } else {
+      this.lccService.updateItem({
+        ...product,
+        quantity: remainingQty
+      });
+    }
+
+    this.distributionService.addDistribution({
+      product: product.name,
+      productId: product.productId || '',
+      quantity: quantity,
+      volunteer: transferredBy,
+      receiver: receiver,
+      date: this.formatDateForDistribution(transferDate),
+      status: 'Assigned',
+      location: product.location || 'LCC'
+    });
+
+    this.reportsService.recordEntry({
+      productId: product.productId || '',
+      productName: product.name,
+      eventType: 'STOCK_TRANSFERRED',
+      eventTitle: 'Transferred to Distribution',
+      quantityChange: -quantity,
+      previousStock: product.quantity,
+      newStock: Math.max(0, remainingQty),
+      location: product.location || 'LCC',
+      updatedBy: transferredBy,
+      remarks: `Transferred to Distribution (${receiver})`,
+      date: transferDate
+    });
+
+    this.closeDistributionTransferModal();
+
+    this.showSuccess(
+      'Transferred to Distribution Successfully!',
+      'Product stock has been transferred from LCC to Distribution.',
+      [
+        { label: 'Product', value: `${product.productId ? product.productId + ' (' + product.name + ')' : product.name}` },
+        { label: 'Quantity Transferred', value: `${quantity} PCS` },
+        { label: 'Remaining LCC Stock', value: `${Math.max(0, remainingQty)} PCS` },
+        { label: 'Transferred By', value: transferredBy },
+        { label: 'Receiver / Destination', value: receiver }
+      ]
+    );
+  }
 
   resetAllData(): void {
     this.showConfirm(
@@ -253,6 +389,7 @@ export class LccComponent implements OnInit, OnDestroy {
           if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.removeItem('warehouse_products');
             localStorage.removeItem('lcc_transferred_items');
+            localStorage.removeItem('lcc_distribution_records');
             localStorage.removeItem('lcc_reports_records');
           }
         } catch (e) {
@@ -260,6 +397,7 @@ export class LccComponent implements OnInit, OnDestroy {
         }
         this.items = [];
         this.lccService.clearAll();
+        this.distributionService.clearAll();
         this.reportsService.clearAllRecords();
         this.showSuccess('Data Reset Complete', 'All entered products, LCC items, and report records have been cleared successfully.');
       },

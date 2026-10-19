@@ -1,20 +1,25 @@
 <div class="distribution-page">
 
-  <!-- PAGE HEADER -->
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
   <div class="page-header">
 
-    <div class="breadcrumb">
-      LCC WAREHOUSE / DISTRIBUTION
-    </div>
+   
 
     <div class="header-row">
 
       <div>
-        <h1>Distribution</h1>
+
+        <h1>
+          Distribution
+        </h1>
 
         <p class="page-description">
-          Manage product distribution from LCC stock.
-        </p>
+  Manage product distribution to volunteers
+</p>
+
       </div>
 
       <button
@@ -30,10 +35,14 @@
   </div>
 
 
-  <!-- STAT CARDS -->
+  <!-- =====================================================
+       STATISTICS
+  ====================================================== -->
+
   <div class="stats-grid">
 
-    <!-- TOTAL DISTRIBUTIONS -->
+    <!-- Total Distributions -->
+
     <div class="stat-card">
 
       <div class="stat-icon yellow">
@@ -59,7 +68,8 @@
     </div>
 
 
-    <!-- LCC TO DISTRIBUTION -->
+    <!-- LCC To Distribution -->
+
     <div class="stat-card">
 
       <div class="stat-icon yellow">
@@ -85,7 +95,8 @@
     </div>
 
 
-    <!-- TODAY DISTRIBUTION -->
+    <!-- Today Distribution -->
+
     <div class="stat-card">
 
       <div class="stat-icon yellow">
@@ -113,12 +124,16 @@
   </div>
 
 
-  <!-- DISTRIBUTION HISTORY -->
+  <!-- =====================================================
+       DISTRIBUTION HISTORY
+  ====================================================== -->
+
   <div class="history-card">
 
     <div class="history-header">
 
       <div>
+
         <h2>
           Distribution History
         </h2>
@@ -126,7 +141,11 @@
         <p>
           Track all product distributions.
         </p>
+
       </div>
+
+
+      <!-- Search -->
 
       <div class="search-box">
 
@@ -141,7 +160,10 @@
     </div>
 
 
-    <!-- TABLE -->
+    <!-- ===================================================
+         TABLE
+    ==================================================== -->
+
     <div class="table-container">
 
       <table>
@@ -149,14 +171,39 @@
         <thead>
 
           <tr>
-            <th>#</th>
-            <th>Distribution ID</th>
-            <th>Product</th>
-            <th>Qty</th>
-            <th>Volunteer</th>
-            <th>Receiver</th>
-            <th>Date</th>
-            <th>Status</th>
+
+            <th>
+              Distribution ID
+            </th>
+
+            <th>
+              Product
+            </th>
+
+            <th>
+              Qty
+            </th>
+
+            <th>
+              Volunteer
+            </th>
+
+            <th>
+              Receiver
+            </th>
+
+            <th>
+              Location
+            </th>
+
+            <th>
+              Date
+            </th>
+
+            <th>
+              Status
+            </th>
+
           </tr>
 
         </thead>
@@ -164,48 +211,78 @@
 
         <tbody>
 
+          <!-- Distribution Rows -->
+
           <tr
             *ngFor="
-              let distribution of filteredDistributions;
-              let i = index
+              let distribution of filteredDistributions
             "
           >
 
-            <td>
-              {{ i + 1 }}
-            </td>
+            <!-- Distribution ID -->
 
             <td>
+
               <strong class="distribution-id">
                 {{ distribution.id }}
               </strong>
+
             </td>
+
+
+            <!-- Product -->
 
             <td>
               {{ distribution.product }}
             </td>
 
+
+            <!-- Quantity -->
+
             <td>
+
               <strong>
                 {{ distribution.quantity }}
               </strong>
+
             </td>
+
+
+            <!-- Volunteer -->
 
             <td>
               {{ distribution.volunteer }}
             </td>
 
+
+            <!-- Receiver -->
+
             <td>
               {{ distribution.receiver }}
             </td>
+
+
+            <!-- Location -->
+
+            <td>
+              {{ distribution.location }}
+            </td>
+
+
+            <!-- Date -->
 
             <td>
               {{ distribution.date }}
             </td>
 
+
+            <!-- Status -->
+
             <td>
 
-              <span class="status-badge assigned">
+              <span
+                class="status-badge assigned"
+              >
                 {{ distribution.status }}
               </span>
 
@@ -214,7 +291,10 @@
           </tr>
 
 
-          <!-- NO DATA -->
+          <!-- =================================================
+               NO DATA
+          ================================================== -->
+
           <tr
             *ngIf="
               filteredDistributions.length === 0
@@ -225,7 +305,32 @@
               colspan="8"
               class="no-data"
             >
-              No distribution records found.
+
+              <!-- Search Result Empty -->
+
+              <span
+                *ngIf="
+                  searchText.trim();
+                  else noDistributionData
+                "
+              >
+
+                No distributions found for
+                "{{ searchText }}"
+
+              </span>
+
+
+              <!-- No Distribution Records -->
+
+              <ng-template
+                #noDistributionData
+              >
+
+                No distribution records available.
+
+              </ng-template>
+
             </td>
 
           </tr>
@@ -239,275 +344,184 @@
   </div>
 
 
-  <!-- MODAL -->
+  <!-- =====================================================
+       NEW DISTRIBUTION / TRANSFER MODAL
+  ====================================================== -->
   <div
-    class="modal-overlay"
+    class="modal-overlay transfer-overlay"
     *ngIf="showModal"
     (click)="closeModal()"
   >
-
-    <div
-      class="modal"
+    <section
+      class="transfer-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="distModalTitle"
       (click)="$event.stopPropagation()"
     >
-
-
-      <!-- MODAL HEADER -->
-      <div class="modal-header">
-
+      <!-- Modal Header -->
+      <div class="transfer-header">
         <div>
-
-          <span class="modal-label">
-            LCC WAREHOUSE
-          </span>
-
-          <h2>
-            Assign Product
-          </h2>
-
-          <p>
-            Assign a product from available LCC stock.
-          </p>
-
+          <h2 id="distModalTitle">Switch Stock to Distribution</h2>
+          <p>Transfer products from LCC to Distribution inventory.</p>
         </div>
 
         <button
           type="button"
-          class="close-btn"
+          class="modal-close-btn"
+          aria-label="Close transfer form"
           (click)="closeModal()"
         >
-          ×
+          &times;
         </button>
-
       </div>
 
-
-      <!-- MODAL BODY -->
-      <div class="modal-body">
-
-
-        <!-- VOLUNTEER -->
-        <div class="form-group">
-
-          <label>
-            Volunteer Name
-          </label>
-
-          <input
-            type="text"
-            [(ngModel)]="selectedVolunteer"
-            placeholder="Enter volunteer name"
-          />
-
-        </div>
-
-
-        <!-- PRODUCT -->
-        <div class="form-group">
-
-          <label>
-            Product
+      <!-- Transfer Form -->
+      <form
+        class="transfer-form"
+        #newDistForm="ngForm"
+        (ngSubmit)="createDistribution()"
+      >
+        <!-- Product ID Dropdown -->
+        <div class="form-field">
+          <label for="distProductId">
+            Product ID <span>*</span>
           </label>
 
           <select
+            id="distProductId"
+            name="distProductId"
             [(ngModel)]="selectedProduct"
+            required
           >
-
-            <option value="">
-              Select Product
-            </option>
-
+            <option value="" disabled>Select Product ID</option>
             <option
               *ngFor="let product of products"
               [value]="product.id"
             >
-              {{ product.name }}
-              ({{ product.availableQty }}
-              available)
+              {{ product.productId + " - " + product.name }}
             </option>
-
           </select>
-
         </div>
 
-
-        <!-- SELECTED STOCK -->
-        <div
-          class="selected-stock"
-          *ngIf="selectedProductDetails"
-        >
-
-          <div class="selected-stock-header">
-
-            <div>
-
-              <span class="stock-label">
-                SELECTED PRODUCT
-              </span>
-
-              <h3>
-                {{ selectedProductDetails.name }}
-              </h3>
-
-              <p>
-                Product ID:
-                {{ selectedProductDetails.id }}
-              </p>
-
-            </div>
-
-
-            <div class="available-number">
-
-              <strong>
-                {{ selectedProductDetails.availableQty }}
-              </strong>
-
-              <span>
-                Units Available
-              </span>
-
-            </div>
-
-          </div>
-
-
-          <!-- STOCK PROGRESS -->
-          <div class="stock-progress">
-
-            <div
-              class="stock-progress-fill"
-              [style.width.%]="stockPercentage"
-            ></div>
-
-          </div>
-
-
-          <div class="stock-progress-info">
-
-            <span>
-              Current LCC Stock
-            </span>
-
-            <span>
-              {{ stockPercentage }}% Available
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <!-- QUANTITY -->
-        <div class="form-group">
-
-          <label>
-            Quantity Given
+        <!-- Product Name Dropdown -->
+        <div class="form-field">
+          <label for="distProductName">
+            Product Name <span>*</span>
           </label>
 
+          <select
+            id="distProductName"
+            name="distProductName"
+            [(ngModel)]="selectedProduct"
+            required
+          >
+            <option value="" disabled>Select Product Name</option>
+            <option
+              *ngFor="let product of products"
+              [value]="product.id"
+            >
+              {{ product.name + " - " + product.productId }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Available Stock Banner -->
+        <div class="available-stock-banner" *ngIf="selectedProductDetails">
+          <div class="stock-info-item">
+            <span class="stock-info-label">Available LCC Stock</span>
+            <strong class="stock-info-value">{{ availableQuantity }} PCS</strong>
+          </div>
+          <div class="stock-info-item">
+            <span class="stock-info-label">Warehouse / LCC Location</span>
+            <strong class="stock-info-value">{{ selectedProductDetails.location || 'Vadalur' }}</strong>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="form-field">
+          <label for="distDate">Date <span>*</span></label>
           <input
+            id="distDate"
+            type="date"
+            name="distributionDate"
+            [(ngModel)]="distributionDate"
+            required
+          />
+        </div>
+
+        <!-- Transferred By / Volunteer -->
+        <div class="form-field">
+          <label for="distVolunteer">Transferred By / Volunteer <span>*</span></label>
+          <input
+            id="distVolunteer"
+            type="text"
+            name="selectedVolunteer"
+            [(ngModel)]="selectedVolunteer"
+            placeholder="Enter volunteer or staff name (e.g., Madhan)"
+            required
+          />
+        </div>
+
+        <!-- Receiver / Destination -->
+        <div class="form-field">
+          <label for="distReceiver">Receiver / Destination <span>*</span></label>
+          <input
+            id="distReceiver"
+            type="text"
+            name="receiverName"
+            [(ngModel)]="receiverName"
+            placeholder="Enter receiver name or distribution center"
+            required
+          />
+        </div>
+
+        <!-- Quantity (PCS) -->
+        <div class="form-field">
+          <label for="distQty">Quantity (PCS) <span>*</span></label>
+          <input
+            id="distQty"
             type="number"
+            name="distributionQuantity"
             [(ngModel)]="distributionQuantity"
-            placeholder="Enter quantity"
             min="1"
             [max]="availableQuantity"
+            step="1"
+            placeholder="Enter quantity"
+            required
           />
+          <small class="field-help" *ngIf="selectedProductDetails">
+            Maximum available to transfer: {{ availableQuantity }} PCS
+          </small>
+        </div>
 
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="closeModal()"
+          >
+            Cancel
+          </button>
 
-          <div
-            class="quantity-info"
-            *ngIf="
-              selectedProductDetails &&
-              distributionQuantity
+          <button
+            type="submit"
+            class="confirm-transfer-btn"
+            [disabled]="
+              newDistForm.invalid ||
+              !selectedProduct ||
+              !distributionQuantity ||
+              distributionQuantity < 1 ||
+              distributionQuantity > availableQuantity
             "
           >
-
-            <span>
-              Remaining Balance
-            </span>
-
-            <strong>
-              {{ newBalance }}
-            </strong>
-
-          </div>
-
+            Confirm Transfer
+          </button>
         </div>
-
-
-        <!-- RECEIVER -->
-        <div class="form-group">
-
-          <label>
-            Receiver Name
-          </label>
-
-          <input
-            type="text"
-            [(ngModel)]="receiverName"
-            placeholder="Enter receiver name"
-          />
-
-        </div>
-
-
-        <!-- DATE -->
-        <div class="form-group">
-
-          <label>
-            Distribution Date
-          </label>
-
-          <input
-            type="text"
-            [(ngModel)]="distributionDate"
-          />
-
-        </div>
-
-
-        <!-- INFORMATION -->
-        <div class="info-box">
-
-          <span class="info-icon">
-            ℹ
-          </span>
-
-          <p>
-            Product will be deducted from the
-            available LCC stock after assignment.
-            The distribution will be marked as
-            <strong>Assigned</strong>.
-          </p>
-
-        </div>
-
-      </div>
-
-
-      <!-- MODAL FOOTER -->
-      <div class="modal-footer">
-
-        <button
-          type="button"
-          class="cancel-btn"
-          (click)="closeModal()"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          class="assign-btn"
-          (click)="createDistribution()"
-        >
-          Assign Product
-        </button>
-
-      </div>
-
-    </div>
-
+      </form>
+    </section>
   </div>
+
 
 </div>
