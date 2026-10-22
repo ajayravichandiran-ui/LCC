@@ -3,6 +3,7 @@
   <!-- Page Header -->
   <header class="lcc-header">
     <div class="header-text">
+      <span class="lcc-eyebrow">INVENTORY / LCC</span>
       <h1>LCC Management</h1>
       <p>Manage and track products transferred from warehouse to LCC inventory.</p>
     </div>
@@ -25,13 +26,15 @@
     <!-- Stock Summary -->
     <div class="stock-summary">
         <div class="summary-card">
-        <span class="summary-label">Total Pieces in LCC</span>
-        <h2>{{ totalPieces }}</h2>
+        <span class="summary-icon summary-icon-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg></span>
+        <div class="summary-content"><span class="summary-label">Total Pieces in LCC</span>
+        <h2>{{ totalPieces | number }}</h2><small>Units held in LCC inventory</small></div>
       </div>
 
       <div class="summary-card">
-        <span class="summary-label">Total LCC Items</span>
-        <h2>{{ totalItems }}</h2>
+        <span class="summary-icon summary-icon-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="m12 2 8 4.5-8 4.5-8-4.5L12 2Z"/><path d="m4 11 8 4.5 8-4.5M4 15.5l8 4.5 8-4.5"/></svg></span>
+        <div class="summary-content"><span class="summary-label">Total LCC Items</span>
+        <h2>{{ totalItems }}</h2><small>Distinct transferred inventory items</small></div>
       </div>
 
       
@@ -39,10 +42,11 @@
 
     <!-- Search Toolbar -->
     <div class="lcc-toolbar">
+      <span class="lcc-search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg></span>
       <input
         type="search"
         class="lcc-search"
-        placeholder="Search by Product, ID, Switched By, or location..."
+        placeholder="Search ID, product, switched by, or location..."
         [(ngModel)]="searchText"
         aria-label="Search LCC items"
       />
@@ -57,14 +61,17 @@
         class="product-card"
         *ngFor="let item of filteredItems; trackBy: trackByTransferId"
       >
+        <div class="lcc-product-top">
+          <span class="lcc-product-icon">
+            <ng-container *ngIf="item.name.toLowerCase().includes('vesti'); else otherLccIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 3h12l2 4-4 3 1 11H7l1-11-4-3 2-4Z"/><path d="M9 3c0 5 6 5 6 0"/></svg></ng-container>
+            <ng-template #otherLccIcon><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="m8 3 4 2 4-2 5 4-3 5-2-1v10H8V11l-2 1-3-5 5-4Z"/></svg></ng-template>
+          </span>
+          <div class="lcc-product-heading"><span class="lcc-product-code">{{ item.productId || 'LCC item' }}</span><h3>{{ item.name }}</h3></div>
+          <span class="lcc-status" [class.lcc-status-low]="item.quantity < 20">{{ item.quantity < 20 ? 'Low stock' : 'In stock' }}</span>
+        </div>
         <!-- Product Details -->
         <div class="product-details">
 
-          <span class="product-id-badge" *ngIf="item.productId">
-            {{ item.productId }}
-          </span>
-
-          <h3>{{ item.name }}</h3>
 
           <p *ngIf="item.productId">
             <strong>Product ID:</strong>
@@ -105,7 +112,7 @@
             class="edit-lcc-btn"
             (click)="openEditModal(item)"
           >
-            Edit
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5 4 4M4 20l5-.8L20 8a2 2 0 0 0-4-4L5 15l-1 5Z"/></svg> Edit
           </button>
           <!-- <button
             type="button"
@@ -150,7 +157,7 @@
         class="switch-distribution-btn"
         (click)="openDistributionTransferModal()"
       >
-        <span class="btn-icon">⇄</span>
+        <span class="btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16m-5-4 5 4-5 4M20 17H4m5-4-5 4 5 4"/></svg></span>
         <span>Move to Distribution</span>
         <span class="btn-arrow">&rarr;</span>
       </button>

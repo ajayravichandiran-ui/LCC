@@ -1627,3 +1627,88 @@ button {
     justify-content: center;
   }
 }
+
+/* === Approved Figma Products styling (no changes to business logic or original top buttons) === */
+.products-page {background:#f7f8fa;color:#14233d;padding:28px clamp(16px,2.6vw,44px) 112px;font-family:Inter,"Segoe UI",Arial,sans-serif;}
+.products-header {margin-bottom:26px;align-items:flex-end;}
+.products-eyebrow {display:block;margin-bottom:8px;font-size:11px;letter-spacing:1.5px;font-weight:800;color:#c39300;}
+.products-header h1 {font-size:36px;font-weight:800;letter-spacing:-1px;color:#14233d;margin-bottom:4px;}
+.products-header p {color:#718098;font-size:13px;}
+/* Original .restock-header-btn and .add-product-btn (including SVG) are deliberately untouched. */
+.stock-register {padding:0;background:transparent;border:0;}
+.stock-summary {gap:18px;margin:0 0 20px;}
+.summary-card {min-height:129px;padding:23px 23px 19px 84px;border:1px solid #e8ecf1;border-radius:17px;background:#fff;box-shadow:0 6px 20px rgba(20,35,61,.035);}
+.summary-card::before {content:"";position:absolute;left:23px;top:23px;right:auto;width:45px;height:45px;border-radius:12px;background:#fff3c4;}
+.summary-card:nth-child(2)::before {background:#f2f5f8;}
+.summary-label {color:#718098;font-weight:700;font-size:13px;margin-bottom:5px;}
+.summary-card h2 {color:#14233d;font-size:34px;font-weight:800;letter-spacing:-.8px;}
+.products-toolbar {background:#fff;border:1px solid #e8ecf1;border-radius:13px;padding:12px 14px;margin-bottom:22px;}
+.product-search {width:min(100%,630px);padding:13px 16px 13px 43px;background-color:#f7f8fa;border:1px solid #e8ecf1;border-radius:10px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23718098' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m16 16 5 5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:14px center;}
+.products-grid {gap:20px;align-items:stretch;}
+.product-card {display:flex;flex-direction:column;border:1px solid #e8ecf1;background:#fff;border-radius:17px;box-shadow:0 6px 22px rgba(20,35,61,.04);}
+.product-card::before {height:4px;background:#f5d529;}
+.product-card:hover {border-color:#e1e6ee;box-shadow:0 16px 32px rgba(20,35,61,.085);}
+.product-visual {position:absolute;top:25px;left:21px;width:56px;height:56px;display:grid;place-items:center;border-radius:15px;background:#f2f5f8;color:#14233d;}
+.product-visual svg {width:28px;height:28px;}
+.product-image {width:56px;height:56px;position:absolute;top:25px;left:21px;border-radius:15px;background:#f2f5f8;}
+.product-image img {object-fit:cover;border-radius:15px;}
+.product-details {padding:25px 22px 18px;flex:1;}
+.product-id-badge {margin-left:72px;margin-bottom:7px;border:0;background:transparent;color:#718098;font-size:12px;letter-spacing:0;padding:0;text-transform:none;}
+.product-details h3 {margin:0 0 14px 72px;min-height:28px;color:#14233d;font-size:19px;font-weight:800;}
+.stock-status {display:inline-flex;margin-bottom:15px;padding:6px 12px;border-radius:100px;background:#e7f7ee;color:#16855a;font-size:11px;font-weight:750;}
+.stock-status-low {background:#fff0ed;color:#be493d;}
+.product-details p {padding:11px 0;border-bottom:1px solid #e8ecf1;font-size:12px;}
+.product-details p strong {color:#718098;font-weight:600;}
+.product-details p span {color:#14233d;font-weight:700;}
+.product-details p .stock-quantity {border:0;background:transparent;font-size:17px;color:#14233d!important;font-weight:800!important;}
+.product-details .product-low-stock-alert {margin-bottom:12px;}
+.product-actions {margin-top:auto;border-top:1px solid #e8ecf1;background:#fbfcfd;padding:14px 20px;}
+.edit-product-btn {border-radius:9px;}
+@media(max-width:1050px){.products-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:700px){.products-grid{grid-template-columns:1fr;}.stock-summary{grid-template-columns:1fr;}.products-header{align-items:flex-start;flex-wrap:wrap;}.products-page{padding:18px 14px 110px;}.header-actions{width:100%;flex-wrap:wrap;}}
+@media(prefers-reduced-motion:reduce){.product-card{transition:none;}}
+
+
+/* ===================================================
+   PRODUCTS REFINEMENT: SUMMARY, CARD RHYTHM & TRANSFER
+   Scoped additions; existing modals and top buttons stay intact.
+   =================================================== */
+
+/* Real vector icons, not empty decorative boxes */
+.summary-card {position:relative;min-height:128px;padding:19px 22px 18px 84px;}
+.summary-card::before {display:none;}
+.summary-icon {position:absolute;top:21px;left:21px;display:grid;place-items:center;width:46px;height:46px;border-radius:12px;color:#14233d;}
+.summary-icon-pieces {background:#fff3c4;}
+.summary-icon-products {background:#f2f5f8;}
+.summary-icon svg {width:24px;height:24px;display:block;}
+.summary-label {margin:1px 0 3px;font-size:13px;}
+.summary-card h2 {margin:0;font-size:33px;line-height:1.2;}
+.summary-help {margin:5px 0 0;color:#718098;font-size:12px;line-height:1.35;}
+
+/* Tighter, consistent product-card spacing */
+.product-details {padding:21px 20px 12px;}
+.product-visual,.product-image {top:20px;left:20px;width:52px;height:52px;border-radius:13px;}
+.product-visual svg {width:26px;height:26px;}
+.product-id-badge {margin-left:68px;margin-bottom:4px;}
+.product-details h3 {margin:0 0 12px 68px;min-height:25px;font-size:18px;}
+.stock-status {margin-bottom:9px;padding:5px 10px;}
+.product-details p {padding:9px 0;font-size:12px;}
+.product-details p .stock-quantity {font-size:16px;}
+.product-actions {padding:12px 18px;background:#fbfcfd;}
+
+/* Leave search border neutral until focus */
+.product-search {border-color:#e8ecf1;outline:none;}
+.product-search:focus {border-color:#caa600;box-shadow:0 0 0 3px rgba(245,213,41,.16);}
+
+/* Floating Move to LCC button: distinct but restrained */
+.switch-lcc-container {right:28px;bottom:26px;z-index:990;}
+.switch-lcc-btn {min-height:50px;padding:0 18px;gap:11px;border:1px solid #e1bd27;border-radius:14px;background:#f5d529;color:#14233d;font-size:13px;font-weight:750;box-shadow:0 8px 22px rgba(95,77,3,.18),0 2px 5px rgba(20,35,61,.06);transition:transform .22s ease,box-shadow .22s ease,background .22s ease;}
+.switch-lcc-btn:hover {background:#ffe35c;border-color:#d7b420;box-shadow:0 12px 26px rgba(95,77,3,.23);transform:translateY(-3px);}
+.switch-lcc-btn:focus-visible {outline:3px solid #14233d;outline-offset:3px;}
+.switch-lcc-btn:active {transform:translateY(0) scale(.98);}
+.btn-icon-svg {width:19px;height:19px;flex:none;}
+.btn-arrow-svg {width:18px;height:18px;margin-left:4px;flex:none;transition:transform .22s ease;}
+.switch-lcc-btn:hover .btn-arrow-svg {transform:translateX(3px);}
+@media(max-width:768px){.summary-card{min-height:121px}.switch-lcc-container{right:18px;bottom:18px}.switch-lcc-btn{min-height:46px;padding:0 15px}}
+@media(max-width:540px){.switch-lcc-container{right:14px;bottom:14px}.switch-lcc-btn{border-radius:12px;font-size:12px}.product-details{padding:19px 16px 10px}}
+@media(prefers-reduced-motion:reduce){.switch-lcc-btn,.btn-arrow-svg{transition:none}.switch-lcc-btn:hover{transform:none}}

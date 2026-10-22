@@ -3,8 +3,9 @@
     <!-- Page Header -->
     <header class="reports-header">
         <div class="header-text">
+            <span class="reports-eyebrow">AUDIT / STOCK OPERATIONS</span>
             <h1>Reports</h1>
-            <p>Audit records of every single data entry, stock update, and transfer.</p>
+            <p>Audit every stock entry, inventory update, and transfer.</p>
         </div>
 
         <div class="header-actions">
@@ -64,7 +65,7 @@
         <div class="summary-grid">
 
             <div class="summary-card">
-                <div class="summary-icon icon-records">📋</div>
+                <div class="summary-icon icon-records"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5zM14 3v5h5M8 12h8M8 16h8"/></svg></div>
                 <div class="summary-info">
                     <span class="summary-label">Total Data Entries</span>
                     <h2>{{ totalRecords }}</h2>
@@ -73,7 +74,7 @@
             </div>
 
             <div class="summary-card">
-                <div class="summary-icon icon-received">📥</div>
+                <div class="summary-icon icon-received"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 14h6l2 3h2l2-3h6"/></svg></div>
                 <div class="summary-info">
                     <span class="summary-label">Total Stock Received</span>
                     <h2>{{ totalReceivedQty }} <span class="unit">PCS</span></h2>
@@ -82,16 +83,16 @@
             </div>
 
             <div class="summary-card">
-                <div class="summary-icon icon-transferred">🔄</div>
+                <div class="summary-icon icon-transferred"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16m-5-4 5 4-5 4M20 17H4m5-4-5 4 5 4"/></svg></div>
                 <div class="summary-info">
                     <span class="summary-label">Stock Transferred</span>
                     <h2>{{ totalTransferredQty }} <span class="unit">PCS</span></h2>
-                    <span class="summary-sub">Transferred to LCC</span>
+                    <span class="summary-sub">Transferred across inventory</span>
                 </div>
             </div>
 
             <div class="summary-card">
-                <div class="summary-icon icon-products">📦</div>
+                <div class="summary-icon icon-products"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg></div>
                 <div class="summary-info">
                     <span class="summary-label">Products Logged</span>
                     <h2>{{ uniqueProductsCount }}</h2>
@@ -113,7 +114,7 @@
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="search" placeholder="Search by Product ID, Name, Updated By, Location, Record ID..."
+                <input type="search" placeholder="Search ID, product, staff, location, record..."
                     [(ngModel)]="searchText" (ngModelChange)="onFilterChange()" aria-label="Search report records" />
             </div>
 
@@ -160,11 +161,11 @@
 
         <div class="table-header-meta">
             <div class="meta-left">
-                <h3>Line-by-Line Transaction Log</h3>
+                <div class="log-title-row"><span class="log-heading-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5zM14 3v5h5M8 12h8M8 16h8"/></svg></span><div><h3>Line-by-Line Transaction Log</h3>
                 <span class="meta-count">
                     Showing <strong>{{ paginatedRecords.length }}</strong> of <strong>{{ filteredRecords.length
                         }}</strong> records
-                </span>
+                </span></div></div>
             </div>
 
             <div class="meta-right">
@@ -247,7 +248,7 @@
 
                         <!-- Location -->
                         <td class="col-location">
-                            <span class="location-badge">📍 {{ r.location }}</span>
+                            <span class="location-badge"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> {{ r.location }}</span>
                         </td>
 
                         <!-- Updated By (Whom) -->
@@ -267,8 +268,8 @@
                         <!-- Action -->
                         <td class="col-action">
                             <button type="button" class="btn-delete-record" (click)="deleteSingleRecord(r)"
-                                title="Delete this record">
-                                🗑
+                                title="Delete this record" aria-label="Delete record">
+                                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6m4-6v6"/></svg>
                             </button>
                         </td>
 
@@ -278,7 +279,7 @@
                     <tr *ngIf="paginatedRecords.length === 0">
                         <td colspan="11" class="empty-table-cell">
                             <div class="empty-state-content">
-                                <div class="empty-state-icon">📋</div>
+                                <div class="empty-state-icon"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="17" rx="2"/><path d="M9 5V3h6v2m-7 6h8m-8 4h8"/></svg></div>
                                 <h4>{{ totalRecords === 0 ? 'No Report History' : 'No Report Records Found' }}</h4>
                                 <p *ngIf="totalRecords === 0">Report history is clean. Transaction records will be logged automatically as warehouse and LCC operations occur.</p>
                                 <p *ngIf="totalRecords > 0">No transaction records match your search or filter criteria.</p>
@@ -319,7 +320,7 @@
         <div class="modal-card manual-entry-modal" (click)="$event.stopPropagation()">
 
             <div class="modal-header">
-                <div class="modal-header-icon">📝</div>
+                <div class="modal-header-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5zM14 3v5h5M8 12h8M8 16h8"/></svg></div>
                 <div>
                     <h2>Record Report Entry</h2>
                     <p>Add a line-by-line audit record directly into the reports file</p>

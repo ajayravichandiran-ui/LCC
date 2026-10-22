@@ -3,48 +3,65 @@
     <a
       class="brand"
       routerLink="/dashboard"
-      (click)="goToDashboard($event); closeMobileMenu()"
-      title="Go to Dashboard"
+      (click)="onTabClick('/dashboard')"
+      aria-label="1:1:1 Warehouse, go to Dashboard"
     >
-      <div class="brand-logo">
-        <img src="images/LCC.jpeg" alt="LCC Warehouse Logo" />
-      </div>
-      <div class="brand-text">
-        <h2>1:1:1</h2>
-        <p>WAREHOUSE</p>
-        <!-- <p>The Joy of giving</p> -->
-      </div>
+      <span class="brand-logo">
+        <img src="images/LCC.jpeg" alt="NGO logo" />
+      </span>
+      <span class="brand-text">
+        <strong>1:1:1</strong>
+        <small>WAREHOUSE</small>
+      </span>
     </a>
 
-    <!-- Navigation links (Desktop & Mobile Dropdown) -->
-    <nav class="nav-links" [class.mobile-open]="isMobileMenuOpen">
+    <nav
+      #navLinks
+      id="warehouse-navigation"
+      class="nav-links"
+      [class.mobile-open]="isMobileMenuOpen"
+      aria-label="Main navigation"
+    >
+      <span #navSlider class="nav-slider" aria-hidden="true"></span>
+
       <a
         *ngFor="let item of menuItems"
+        class="nav-link"
         [routerLink]="item.route"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-link"
-        (click)="closeMobileMenu()"
+        ariaCurrentWhenActive="page"
+        (isActiveChange)="onActiveChange(item.route, $event)"
+        (click)="onTabClick(item.route)"
       >
         {{ item.name }}
       </a>
-      <button class="nav-link logout-btn mobile-logout" type="button" (click)="onLogout()">
-        Logout
+
+      <button
+        type="button"
+        class="logout-btn mobile-logout"
+        (click)="onLogout()"
+      >
+        <span aria-hidden="true">↪</span> Logout
       </button>
     </nav>
 
     <div class="nav-actions">
-      <button class="nav-link logout-btn desktop-logout" type="button" (click)="onLogout()">
-        Logout
+      <button
+        type="button"
+        class="logout-btn desktop-logout"
+        (click)="onLogout()"
+      >
+        <span aria-hidden="true">↪</span> Logout
       </button>
 
-      <!-- Mobile Hamburger Toggle -->
       <button
         type="button"
         class="mobile-toggle-btn"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="isMobileMenuOpen"
-        aria-label="Toggle navigation menu"
+        aria-controls="warehouse-navigation"
+        [attr.aria-label]="isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
       >
         <span class="bar bar-1" [class.bar-1-open]="isMobileMenuOpen"></span>
         <span class="bar bar-2" [class.bar-2-open]="isMobileMenuOpen"></span>

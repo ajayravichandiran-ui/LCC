@@ -1,174 +1,119 @@
-
 <div class="dashboard-page">
+  <!-- Inline icon library: crisp, matching stroke icons, no external dependency -->
+  <svg class="dashboard-icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <symbol id="db-box" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z M3 7v10l9 5 9-5V7 M12 12v10"/></symbol>
+    <symbol id="db-layers" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z M3 12l9 5 9-5 M3 17l9 5 9-5"/></symbol>
+    <symbol id="db-alert" viewBox="0 0 24 24"><path d="M10.3 4.2 2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z M12 9v5 M12 18h.01"/></symbol>
+    <symbol id="db-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+    <symbol id="db-chart" viewBox="0 0 24 24"><path d="M3 3v18h18 M7 16l4-5 4 2 5-7"/></symbol>
+    <symbol id="db-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="db-transfer" viewBox="0 0 24 24"><path d="M7 7h14m-4-4 4 4-4 4 M17 17H3m4-4-4 4 4 4"/></symbol>
+    <symbol id="db-receive" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5 M4 17v3h16v-3"/></symbol>
+    <symbol id="db-edit" viewBox="0 0 24 24"><path d="m4 17 11-11 4 4L8 21H4v-4Z M13 8l4 4 M15 6l2-2a2 2 0 0 1 3 3l-2 2"/></symbol>
+    <symbol id="db-trash" viewBox="0 0 24 24"><path d="M4 7h16 M9 7V4h6v3 M6 7l1 14h10l1-14 M10 11v6 M14 11v6"/></symbol>
+    <symbol id="db-plus" viewBox="0 0 24 24"><path d="M12 4v16 M4 12h16"/></symbol>
+    <symbol id="db-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  </svg>
 
+  <header class="page-intro">
+    <div>
+      <span class="eyebrow">WAREHOUSE OVERVIEW</span>
+      <h1>Dashboard</h1>
+      <p>Monitor inventory health, transfers, and day-to-day operations.</p>
+    </div>
+    <div class="period-tag"><svg class="ui-icon"><use href="#db-clock"/></svg><span>Last 7 days</span></div>
+  </header>
 
-
-  <!-- Page introduction -->
-  <section class="page-intro">
-    <span class="eyebrow">1:1:1</span>
-    <h1>Dashboard</h1>
-    <p>Monitor your warehouse stock and daily activities.</p>
-  </section>
-
-  <!-- Summary cards -->
-  <section class="stats-grid">
-    <article
-      class="stat-card"
-      *ngFor="let stat of stats"
-      [ngClass]="[stat.color, stat.isAlert ? 'has-alert' : '']">
-
+  <section class="stats-grid" aria-label="Warehouse summary">
+    <article class="stat-card" *ngFor="let stat of stats" [ngClass]="[stat.color, stat.isAlert ? 'has-alert' : '']">
       <div class="stat-top">
         <span class="stat-title">{{ stat.title }}</span>
-        <span class="stat-icon" [class.alert-blinking]="stat.isAlert">{{ stat.icon }}</span>
+        <span class="stat-icon" [class.alert-blinking]="stat.isAlert">
+          <svg class="ui-icon"><use [attr.href]="'#db-' + stat.icon" /></svg>
+        </span>
       </div>
-
-      <h2>{{ stat.value }}</h2>
-      <p [class.warning-blink-red]="stat.isAlert" [class.stat-highlight-yellow]="!stat.isAlert">
-        <span *ngIf="stat.isAlert" class="alert-pulse-dot"></span>
-        {{ stat.description }}
+      <h2>{{ stat.value | number }}</h2>
+      <p [class.warning-blink-red]="stat.isAlert">
+        <span *ngIf="stat.isAlert" class="alert-pulse-dot"></span>{{ stat.description }}
       </p>
     </article>
   </section>
 
-  <!-- Charts and activities -->
   <section class="dashboard-grid">
-
-    <!-- Stock movement chart -->
     <article class="panel chart-panel">
-      <div class="panel-header">
-        <div>
-          <h2>Stock Movement</h2>
-          <p>Weekly stock received and distributed</p>
+      <header class="panel-header">
+        <div class="panel-heading-group">
+          <span class="heading-icon"><svg class="ui-icon"><use href="#db-chart"/></svg></span>
+          <div><h2>Stock movement</h2><p>Weekly stock received and distributed</p></div>
         </div>
-        <span class="panel-icon">📈</span>
-      </div>
+        <span class="subtle-chip">This week</span>
+      </header>
 
       <div class="chart-legend">
-        <span><i class="legend-dot received"></i> Received</span>
-        <span><i class="legend-dot distributed"></i> Distributed</span>
+        <span><i class="legend-dot received"></i>Received</span>
+        <span><i class="legend-dot distributed"></i>Distributed</span>
       </div>
-
-      <div class="chart">
-        <div class="chart-y-axis">
-          <span>120</span>
-          <span>90</span>
-          <span>60</span>
-          <span>30</span>
-          <span>0</span>
-        </div>
-
+      <div class="chart" role="img" aria-label="Last seven days received versus distributed stock">
+        <div class="chart-y-axis"><span>120</span><span>90</span><span>60</span><span>30</span><span>0</span></div>
         <div class="chart-body">
-          <div class="chart-grid-lines">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-
+          <div class="chart-grid-lines"><span></span><span></span><span></span><span></span><span></span></div>
           <div class="chart-columns">
             <div class="day-column" *ngFor="let item of stockMovement">
               <div class="bars">
-                <div
-                  class="bar received"
-                  [style.height.%]="getBarHeight(item.received)"
-                  [title]="'Received: ' + item.received">
-                </div>
-                <div
-                  class="bar distributed"
-                  [style.height.%]="getBarHeight(item.distributed)"
-                  [title]="'Distributed: ' + item.distributed">
-                </div>
+                <div class="bar received" [style.height.%]="getBarHeight(item.received)" [title]="'Received: ' + item.received"></div>
+                <div class="bar distributed" [style.height.%]="getBarHeight(item.distributed)" [title]="'Distributed: ' + item.distributed"></div>
               </div>
               <span class="day-label">{{ item.day }}</span>
             </div>
           </div>
         </div>
       </div>
-
-      <div class="chart-footer">
-        <span>Weekly overview</span>
-        <span>Sample data</span>
-      </div>
+      <footer class="chart-footer"><span>Weekly overview</span><span>{{ isStockMovementSample ? 'Sample data' : 'Live operations data' }}</span></footer>
     </article>
 
-    <!-- Recent activity -->
     <article class="panel activity-panel">
-      <div class="panel-header">
-        <div>
-          <h2>Recent Activity</h2>
-          <p>Latest warehouse operations</p>
+      <header class="panel-header">
+        <div class="panel-heading-group">
+          <span class="heading-icon"><svg class="ui-icon"><use href="#db-clock"/></svg></span>
+          <div><h2>Recent activity</h2><p>Latest warehouse operations</p></div>
         </div>
-        <span class="panel-icon">🕒</span>
-      </div>
-
+      </header>
       <div class="activity-list" *ngIf="activities.length > 0; else noActivities">
         <div class="activity-item" *ngFor="let activity of activities">
-          <div class="activity-icon">{{ activity.icon }}</div>
-          <div class="activity-details">
-            <h3>{{ activity.title }}</h3>
-            <p>{{ activity.description }}</p>
-            <span>{{ activity.time }}</span>
-          </div>
+          <span class="activity-icon" [class.stock-event]="activity.icon === 'layers' || activity.icon === 'box'">
+            <svg class="ui-icon"><use [attr.href]="'#db-' + activity.icon"/></svg>
+          </span>
+          <div class="activity-details"><h3>{{ activity.title }}</h3><p>{{ activity.description }}</p><span>{{ activity.time }}</span></div>
         </div>
       </div>
-
-      <ng-template #noActivities>
-        <div class="empty-activity-state">
-          <p>No recent operations recorded yet. Added or updated products will appear here.</p>
-        </div>
-      </ng-template>
+      <ng-template #noActivities><div class="empty-activity-state">No recent operations recorded yet. New warehouse activity will appear here.</div></ng-template>
     </article>
-
   </section>
 
-  <!-- Low stock table -->
   <section class="panel low-stock-panel">
-    <div class="panel-header">
-      <div>
-        <h2>Low Stock Alerts</h2>
-        <p>Products that may need restocking (Stock below 20)</p>
+    <header class="panel-header">
+      <div class="panel-heading-group">
+        <span class="heading-icon" [class.heading-icon-safe]="lowStockProducts.length === 0">
+          <svg class="ui-icon"><use [attr.href]="lowStockProducts.length ? '#db-alert' : '#db-check'"/></svg>
+        </span>
+        <div><h2>Low stock alerts</h2><p>Items below the minimum stock threshold (20)</p></div>
       </div>
-      <span class="alert-count" [class.alert-active]="lowStockProducts.length > 0">
-        {{ lowStockProducts.length }} items
-      </span>
-    </div>
-
+      <span class="alert-count" [class.alert-active]="lowStockProducts.length > 0">{{ lowStockProducts.length }} {{ lowStockProducts.length === 1 ? 'alert' : 'alerts' }}</span>
+    </header>
     <div class="table-wrapper" *ngIf="lowStockProducts.length > 0; else noLowStock">
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Location</th>
-            <th>Current Stock</th>
-            <th>Minimum Stock</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr *ngFor="let product of lowStockProducts">
-            <td class="product-name">{{ product.name }}</td>
-            <td>{{ product.category }}</td>
-            <td><span class="stock-danger">{{ product.stock }} units</span></td>
-            <td>{{ product.minimum }} units</td>
-            <td>
-              <span class="status-badge alert-blinking">
-                <span class="alert-pulse-dot"></span>
-                Stock Required
-              </span>
-            </td>
-          </tr>
-        </tbody>
+      <table><thead><tr><th>Product</th><th>Location</th><th>Current stock</th><th>Minimum stock</th><th>Status</th></tr></thead>
+        <tbody><tr *ngFor="let product of lowStockProducts">
+          <td class="product-name">{{ product.name }}</td><td>{{ product.category }}</td>
+          <td><span class="stock-danger">{{ product.stock }} units</span></td><td>{{ product.minimum }} units</td>
+          <td><span class="status-badge"><span class="alert-pulse-dot"></span>Stock required</span></td>
+        </tr></tbody>
       </table>
     </div>
-
     <ng-template #noLowStock>
       <div class="empty-stock-state">
-        <span class="check-icon">✓</span>
-        <p>All stock levels are adequate (all items are 20 or above). No products require updating.</p>
+        <span class="check-icon"><svg class="ui-icon"><use href="#db-check"/></svg></span>
+        <div><strong>Inventory is looking healthy</strong><p>No products are currently below the low-stock threshold.</p></div>
       </div>
     </ng-template>
   </section>
-
 </div>

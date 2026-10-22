@@ -3,6 +3,7 @@
   <!-- Page Header -->
   <header class="products-header">
     <div class="header-text">
+      <span class="products-eyebrow">INVENTORY / WAREHOUSE</span>
       <h1>Products</h1>
       <p>Manage warehouse products and available stock.</p>
     </div>
@@ -37,12 +38,26 @@
     <!-- Stock Summary -->
     <div class="stock-summary">
       <div class="summary-card">
+        <span class="summary-icon summary-icon-pieces" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+            <path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>
+          </svg>
+        </span>
         <span class="summary-label">Total Pieces</span>
-        <h2>{{ totalPieces }}</h2>
+        <h2>{{ totalPieces | number }}</h2>
+        <p class="summary-help">Units available in warehouse</p>
       </div>
       <div class="summary-card">
+        <span class="summary-icon summary-icon-products" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 2 8 4.5-8 4.5-8-4.5L12 2Z"/>
+            <path d="m4 11 8 4.5 8-4.5M4 15.5l8 4.5 8-4.5"/>
+          </svg>
+        </span>
         <span class="summary-label">Total Products</span>
         <h2>{{ products.length }}</h2>
+        <p class="summary-help">Distinct inventory items</p>
       </div>
 
       
@@ -56,7 +71,7 @@
       <input
         type="search"
         class="product-search"
-        placeholder="Search by Product, ID, Producr Name, or location..."
+        placeholder="Search by product ID, name, or location..."
         [(ngModel)]="searchText"
         aria-label="Search products"
       />
@@ -76,7 +91,12 @@
         "
       >
 
-        <!-- Product Image -->
+        <!-- Compact product artwork, preserving a real product image when provided -->
+        <div class="product-visual" *ngIf="!product.image" aria-hidden="true">
+          <svg *ngIf="product.name.toLowerCase().includes('shirt')" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m8 3 4 2 4-2 5 4-3 5-2-1v10H8V11l-2 1-3-5 5-4Z"/></svg>
+          <svg *ngIf="product.name.toLowerCase().includes('oil')" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2s-7 8-7 13a7 7 0 0 0 14 0C19 10 12 2 12 2Z"/></svg>
+          <svg *ngIf="!product.name.toLowerCase().includes('shirt') && !product.name.toLowerCase().includes('oil')" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l2 4-4 3 1 11H7l1-11-4-3 2-4Z"/><path d="M9 3c0 5 6 5 6 0"/></svg>
+        </div>
         <div class="product-image" *ngIf="product.image">
           <img
             [src]="product.image"
@@ -92,6 +112,7 @@
           </span>
 
           <h3>{{ product.name }}</h3>
+          <span class="stock-status" [class.stock-status-low]="product.quantity < 20">{{ product.quantity < 20 ? 'Low stock' : 'In stock' }}</span>
 
           <p *ngIf="product.productId">
             <strong>Product ID:</strong>
@@ -186,9 +207,13 @@
         class="switch-lcc-btn"
         (click)="openTransferForm()"
       >
-        <span class="btn-icon">⇄</span>
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 3h5v5M21 3l-7 7"/>
+          <path d="M8 21H3v-5M3 21l7-7"/>
+          <path d="M19 13v4a2 2 0 0 1-2 2h-4M5 11V7a2 2 0 0 1 2-2h4"/>
+        </svg>
         <span>Move to LCC</span>
-        <span class="btn-arrow">&rarr;</span>
+        <svg class="btn-arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
       </button>
     </div>
 

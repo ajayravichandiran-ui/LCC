@@ -1196,3 +1196,60 @@ button {
   box-shadow: none;
   transform: none;
 }
+
+/* ===================================================
+   REFINED LCC VIEW / matches approved Warehouse UI
+   Existing modal and data-management rules remain intact
+=================================================== */
+:host { font-family:Inter,"Segoe UI",Arial,sans-serif; }
+.lcc-page { background:#f7f8fa; min-height:calc(100vh - 80px); padding:25px clamp(16px,2.5vw,42px) 110px; color:#14233d; }
+.lcc-header { margin-bottom:27px; align-items:center; }
+.lcc-eyebrow { display:block; color:#bb8c00; font-size:11px; font-weight:800; letter-spacing:1.8px; margin-bottom:10px; }
+.lcc-header h1 { font-size:clamp(30px,3vw,38px); letter-spacing:-1.2px; margin:0 0 4px; font-weight:800; color:#14233d; }
+.lcc-header p { color:#718098; font-size:13px; }
+.lcc-register { border:0; background:transparent; border-radius:0; padding:0; }
+.stock-summary { gap:17px; margin-bottom:18px; }
+.summary-card { display:flex; align-items:flex-start; gap:16px; min-height:125px; padding:21px 22px; background:#fff; border:1px solid #e8ecf1; border-radius:17px; box-shadow:0 5px 18px rgba(21,35,61,.035); }
+.summary-card::before { display:none; }
+.summary-icon { width:46px; height:46px; flex:0 0 46px; display:grid; place-items:center; border-radius:12px; color:#14233d; }
+.summary-icon svg { width:24px; height:24px; display:block; }
+.summary-icon-gold { background:#fff3c4; } .summary-icon-gray { background:#f2f5f8; }
+.summary-content { min-width:0; }
+.summary-label { color:#718098; font-weight:650; font-size:13px; margin-bottom:4px; }
+.summary-card h2 { color:#14233d; font-size:33px; line-height:1.16; letter-spacing:-.7px; font-weight:800; margin:0 0 7px; font-variant-numeric:tabular-nums; }
+.summary-card small { color:#718098; font-size:12px; }
+.lcc-toolbar { position:relative; min-height:65px; padding:10px 14px; background:#fff; border:1px solid #e8ecf1; border-radius:13px; margin-bottom:20px; }
+.lcc-search-icon { display:grid; place-items:center; position:absolute; top:22px; left:29px; width:19px; height:19px; color:#718098; pointer-events:none; }
+.lcc-search-icon svg { width:19px; height:19px; }
+.lcc-search { width:min(100%,620px); background:#f7f8fa; border:1px solid transparent; border-radius:10px; min-height:43px; padding:11px 14px 11px 44px; font-size:13px; }
+.lcc-search:focus { background:#fff; border-color:#e0ba31; }
+.products-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; align-items:stretch; }
+.product-card { display:flex; flex-direction:column; min-height:365px; border-radius:17px; border:1px solid #e8ecf1; box-shadow:0 6px 19px rgba(20,35,61,.045); }
+.product-card::before { background:#f5d529; height:4px; }
+.lcc-product-top { display:flex; align-items:center; gap:13px; padding:23px 20px 13px; flex-wrap:wrap; }
+.lcc-product-icon { flex:0 0 52px; display:grid; place-items:center; width:52px; height:52px; background:#f2f5f8; border-radius:14px; color:#14233d; }
+.lcc-product-icon svg { width:27px; height:27px; }
+.lcc-product-heading { flex:1; min-width:90px; }
+.lcc-product-code { color:#718098; font-size:11px; font-weight:700; }
+.lcc-product-heading h3 { color:#14233d; font-size:19px; margin:5px 0 0; font-weight:800; }
+.lcc-status { white-space:nowrap; align-self:flex-start; padding:7px 11px; border-radius:20px; background:#e7f7ee; color:#16855a; font-weight:700; font-size:11px; }
+.lcc-status-low { background:#fee2e2; color:#b91c1c; }
+.product-details { padding:0 20px 10px; flex:1; }
+.product-details p { padding:10px 0; border-color:#e8ecf1; font-size:12px; }
+.product-details p strong { color:#718098; font-weight:600; }
+.product-details p span { color:#14233d; font-weight:700; }
+.stock-value-highlight { background:transparent; border:0; padding:0; color:#14233d!important; font-size:16px; font-weight:800!important; }
+.product-low-stock-alert { animation:none; }
+.product-actions { background:#fafbfd; padding:12px 20px; border-color:#e8ecf1; }
+.edit-lcc-btn { flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; padding:9px 14px; font-size:12px; background:#fff; }
+.edit-lcc-btn svg { width:15px; height:15px; color:#536c93; }
+.reset-data-btn { background:#fff7f7; border:1px solid #ffcaca; color:#b42323; }
+.switch-distribution-container { right:27px; bottom:25px; }
+.switch-distribution-btn { border:1px solid #dbb627; background:#f5d529; border-radius:15px; color:#14233d; box-shadow:0 6px 17px rgba(153,119,11,.19); min-height:50px; font-size:13px; font-weight:750; }
+.switch-distribution-btn:hover { background:#ffe363; border-color:#cba51e; box-shadow:0 10px 22px rgba(153,119,11,.22); }
+.switch-distribution-btn .btn-icon { display:grid; place-items:center; }
+.switch-distribution-btn .btn-icon svg { width:20px; height:20px; }
+.switch-distribution-btn .btn-arrow { margin-left:6px; }
+@media(max-width:1050px) { .products-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:700px) { .lcc-page { padding:20px 14px 90px; } .lcc-header { flex-direction:column; align-items:flex-start; gap:16px; } .stock-summary,.products-grid { grid-template-columns:1fr; } .summary-card { min-height:112px; } .lcc-toolbar { padding:10px; } .lcc-search { width:100%; } .lcc-search-icon { left:25px; } .lcc-product-top { padding:20px 16px 12px; } .product-details { padding:0 16px 10px; } .switch-distribution-container { right:14px; bottom:14px; } }
+@media(prefers-reduced-motion:reduce) { .product-card, .switch-distribution-btn { transition:none; } }

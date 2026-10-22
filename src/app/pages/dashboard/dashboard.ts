@@ -29,7 +29,6 @@ export interface ActivityItem {
 })
 export class Dashboard implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
-
   constructor(
     private lccService: LccService,
     private reportsService: ReportsService
@@ -39,21 +38,21 @@ export class Dashboard implements OnInit, OnDestroy {
     {
       title: 'Total Product',
       value: 0,
-      icon: '🏢',
+      icon: 'box',
       description: 'Units available in LCC + Products',
       color: 'blue'
     },
     {
       title: 'Total Stocks Items',
       value: 0,
-      icon: '📦',
+      icon: 'layers',
       description: 'Total stocks (LCC + Products)',
       color: 'yellow'
     },
     {
       title: 'Low Stock Items',
       value: 0,
-      icon: '⚠️',
+      icon: 'alert',
       description: 'All stocks adequate',
       color: 'red',
       isAlert: false
@@ -61,7 +60,7 @@ export class Dashboard implements OnInit, OnDestroy {
     {
       title: 'Categories',
       value: 0,
-      icon: '🗃️',
+      icon: 'grid',
       description: 'Product categories',
       color: 'green'
     }
@@ -77,6 +76,7 @@ export class Dashboard implements OnInit, OnDestroy {
     { day: 'Sun', received: 0, distributed: 0 }
   ];
 
+  isStockMovementSample = true;
   lowStockProducts: any[] = [];
   activities: ActivityItem[] = [];
 
@@ -146,14 +146,14 @@ export class Dashboard implements OnInit, OnDestroy {
       {
         title: 'Total Products',
         value: totalStock,
-        icon: '🏢',
+        icon: 'box',
         description: `${warehouseStock} Warehouse + ${lccStock} LCC units`,
         color: 'blue'
       },
       {
         title: 'Total Stocks Items',
         value: totalProducts,
-        icon: '📦',
+        icon: 'layers',
         description: `${warehouseCount} Products + ${lccCount} LCC`,
         color: 'yellow'
         
@@ -161,7 +161,7 @@ export class Dashboard implements OnInit, OnDestroy {
       {
         title: 'Low Stock Items',
         value: lowStockCount,
-        icon: '⚠️',
+        icon: 'alert',
         description: isLowStock ? 'Stock Required (< 20 PCS)' : 'All stocks adequate',
         color: 'red',
         isAlert: isLowStock
@@ -169,7 +169,7 @@ export class Dashboard implements OnInit, OnDestroy {
       {
         title: 'Categories',
         value: categorySet.size || (totalProducts > 0 ? 1 : 0),
-        icon: '🗃️',
+        icon: 'grid',
         description: 'Distinct product types',
         color: 'green'
       }
@@ -208,12 +208,12 @@ export class Dashboard implements OnInit, OnDestroy {
 
     if (records && records.length > 0) {
       return records.slice(0, 3).map(r => {
-        let icon = '📦';
-        if (r.eventType === 'STOCK_RECEIVED') icon = '📥';
-        else if (r.eventType === 'STOCK_TRANSFERRED') icon = '🔄';
-        else if (r.eventType === 'PRODUCT_UPDATED') icon = '✏️';
-        else if (r.eventType === 'PRODUCT_DELETED' || r.eventType === 'LCC_TRANSFER_DELETED') icon = '🗑️';
-        else if (r.eventType === 'PRODUCT_ADDED') icon = '✨';
+        let icon = 'layers';
+        if (r.eventType === 'STOCK_RECEIVED') icon = 'receive';
+        else if (r.eventType === 'STOCK_TRANSFERRED') icon = 'transfer';
+        else if (r.eventType === 'PRODUCT_UPDATED') icon = 'edit';
+        else if (r.eventType === 'PRODUCT_DELETED' || r.eventType === 'LCC_TRANSFER_DELETED') icon = 'trash';
+        else if (r.eventType === 'PRODUCT_ADDED') icon = 'plus';
 
         const qtyPrefix = r.quantityChange > 0 ? `+${r.quantityChange}` : `${r.quantityChange}`;
         const prodName = r.productId && r.productId !== 'N/A'
@@ -255,7 +255,7 @@ export class Dashboard implements OnInit, OnDestroy {
           title: 'Transferred to LCC',
           description: `${item.productId ? item.productId + ' (' + item.name + ')' : item.name} • ${item.quantity} PCS transferred by ${item.switchedBy || 'Staff'}`,
           time: this.formatActivityTime(item.date),
-          icon: '🔄'
+          icon: 'transfer'
         });
       });
     }
@@ -266,7 +266,7 @@ export class Dashboard implements OnInit, OnDestroy {
           title: 'Product in Warehouse',
           description: `${p.productId ? p.productId + ' (' + p.name + ')' : p.name} • ${p.quantity} PCS available in ${p.location || 'Warehouse'}`,
           time: this.formatActivityTime(p.receivedDate),
-          icon: '📦'
+          icon: 'layers'
         });
       });
     }
@@ -351,13 +351,16 @@ export class Dashboard implements OnInit, OnDestroy {
       });
     }
 
+    this.isStockMovementSample = !hasActivity;
     if (hasActivity) {
+      this.isStockMovementSample = false;
       this.stockMovement = last7Days.map(d => ({
         day: d.day,
         received: d.received,
         distributed: d.distributed
       }));
     } else {
+      this.isStockMovementSample = true;
       // Default baseline preview if no recorded daily movements yet
       this.stockMovement = [
         { day: 'Mon', received: 70, distributed: 35 },
